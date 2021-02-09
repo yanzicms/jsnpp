@@ -1,0 +1,35 @@
+{
+    "name": "yanzicms/jsnpp",
+    "description": "A PHP Framework.",
+    "keywords": [
+        "framework",
+        "jsnpp"
+    ],
+    "license": "Apache-2.0",
+    "support": {
+        "issues": "https://github.com/yanzicms/jsnpp/issues",
+        "source": "https://github.com/yanzicms/jsnpp"
+    },
+    "authors": [
+        {
+            "name": "Alfred Johnson",
+            "email": "804644245@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.6.0",
+        "ext-mbstring": "*",
+        "ext-gd": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "jsnpp\\": "src/jsnpp/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "jsnpp\\tests\\": "tests/"
+        }
+    }
+}
