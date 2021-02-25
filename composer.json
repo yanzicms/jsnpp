@@ -20,8 +20,7 @@
     "require": {
         "php": ">=5.6.0",
         "ext-mbstring": "*",
-        "ext-json": "*",
-        "psr/container": "~1.0"
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {
