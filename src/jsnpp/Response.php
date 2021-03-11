@@ -145,20 +145,19 @@ class Response
         $tpl = preg_replace('/<!--.*-->/is', '', $tpl);
         $tpl = str_replace($jsnpp, $jsnppConversion, $tpl);
         $tpl = str_replace($jsnpps, $jsnppConversions, $tpl);
-        $preg = '/(?<!'.$start.')'.$start.'[^:;\n'.$start.$end.']*?'.$end.'(?!'.$end.')/';
+        $preg = '/(?<!'.$start.')'.$start.'(lang\(.+?\)|[^:;\n'.$start.$end.']*?)'.$end.'(?!'.$end.')/';
         preg_match_all($preg, $tpl, $match);
         $tplshell = preg_replace($preg, $jsnpp, $tpl);
         $tplshellArr = explode($jsnpps, $tplshell);
-        $match = $match[0];
-        $ms = strlen($ostart);
-        $me = - strlen($oend);
+        $match = $match[1];
         $stack = [];
         $eachorder = 0;
         foreach($match as $key => $val){
-            $val = trim(substr($val, $ms, $me));
+            $val = trim($val);
             if(substr($val, 0, 5) == 'lang('){
-                $lang = trim(trim(trim(substr($val, 6, -1)), '\''));
-                $match[$key] = '<?php echo lang(\'' . $lang . '\'); ?>';
+                $lang = trim(substr($val, 5, -1));
+                $match[$key] = '<?php echo lang(' . $lang . '); ?>';
+                
             }
             elseif(substr($val, 0, 4) == 'url('){
                 $url = trim(substr($val, 4, -1));

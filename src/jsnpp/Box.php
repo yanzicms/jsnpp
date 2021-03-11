@@ -18,7 +18,29 @@ class Box
         }
         else{
             $name = trim($name);
-            if(isset($this->box[$name])){
+            if(strpos($name, '.') !== false){
+                $varr = explode('.', $name);
+                $value = array_shift($varr);
+                if(isset($this->box[$value])){
+                    $value = $this->box[$value];
+                    if(count($varr) > 0){
+                        foreach($varr as $val){
+                            if(isset($value[$val])){
+                                $value = $value[$val];
+                            }
+                            else{
+                                $value = null;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else{
+                    $value = null;
+                }
+                return $value;
+            }
+            elseif(isset($this->box[$name])){
                 return $this->box[$name];
             }
             return null;

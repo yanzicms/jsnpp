@@ -22,11 +22,23 @@ class Session
     {
         $this->start();
         $_SESSION[$name] = $value;
+        return $this;
     }
-    public function get($name)
+    public function get($name = null)
     {
         $this->start();
-        return $_SESSION[$name];
+        if(is_null($name)){
+            return $_SESSION;
+        }
+        if(isset($_SESSION[$name])){
+            return $_SESSION[$name];
+        }
+        return null;
+    }
+    public function has($name)
+    {
+        $this->start();
+        return isset($_SESSION[$name]) ? true : false;
     }
     public function remove($name)
     {
@@ -34,5 +46,6 @@ class Session
         if(isset($_SESSION[$name])){
             unset($_SESSION[$name]);
         }
+        return $this;
     }
 }

@@ -10,13 +10,13 @@ namespace jsnpp;
 
 class Check extends Connector
 {
-    private $session;
-    private $cookie;
+    private $sessions;
+    private $cookies;
     private $runresult = null;
     private $param = [];
     public function initialize(){
-        $this->session = $this->app->get('session');
-        $this->cookie = $this->app->get('cookie');
+        $this->sessions = $this->app->get('session');
+        $this->cookies = $this->app->get('cookie');
     }
     public function stop($variable, $symbol, $expression = null, $alert = null)
     {
@@ -80,34 +80,38 @@ class Check extends Connector
         }
         return $value;
     }
-    public function session($name, $value)
+    public function session($name, $value, $condition = true)
     {
-        $this->set('execSession', $name, $value);
+        $this->set('execSession', $name, $value, $condition);
         return $this;
     }
-    protected function execSession($name, $value)
+    protected function execSession($name, $value, $condition)
     {
-        if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
-            $value = $this->findBoxValue($metchs[1]);
+        if($condition){
+            if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+                $value = $this->findBoxValue($metchs[1]);
+            }
+            $this->sessions->set($name, $value);
         }
-        $this->session->set($name, $value);
         return [
             'result' => true,
             'code' => 0,
             'message' => 'ok'
         ];
     }
-    public function cookie($name, $value, $expire)
+    public function cookie($name, $value, $expire, $condition = true)
     {
-        $this->set('execCookie', $name, $value, $expire);
+        $this->set('execCookie', $name, $value, $expire, $condition);
         return $this;
     }
-    protected function execCookie($name, $value, $expire)
+    protected function execCookie($name, $value, $expire, $condition)
     {
-        if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
-            $value = $this->findBoxValue($metchs[1]);
+        if($condition){
+            if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+                $value = $this->findBoxValue($metchs[1]);
+            }
+            $this->cookies->set($name, $value, $expire);
         }
-        $this->cookie->set($name, $value, $expire);
         return [
             'result' => true,
             'code' => 0,

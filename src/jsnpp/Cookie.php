@@ -13,13 +13,25 @@ class Cookie
     public function set($name, $value, $expire)
     {
         setcookie($name, $value, time() + $expire, '/');
+        return $this;
     }
-    public function get($name)
+    public function get($name = null)
     {
-        return $_COOKIE[$name];
+        if(is_null($name)){
+            return $_COOKIE;
+        }
+        if(isset($_COOKIE[$name])){
+            return $_COOKIE[$name];
+        }
+        return null;
+    }
+    public function has($name)
+    {
+        return isset($_COOKIE[$name]) ? true : false;
     }
     public function remove($name)
     {
         setcookie($name, '', time() - 3600, '/');
+        return $this;
     }
 }

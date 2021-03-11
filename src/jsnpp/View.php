@@ -32,7 +32,7 @@ class View
         }
         if(is_file($tplfile)){
             $captchaurl = $this->route->url('captcha');
-            $this->response->setAssign('captcha', '<img src="'.$captchaurl.'" onclick="this.src = \''.$captchaurl.'?\' + Math.random();" style="cursor: pointer">');
+            $this->response->setAssign('captcha', '<img src="'.$captchaurl.'" onclick="this.src = \''.$captchaurl.'?\' + Math.random();" id="captcha" style="cursor: pointer">');
             Tools::$lang = $this->app->get('lang');
             Tools::$url = $this->app->get('route');
             $this->response->display($tplfile);

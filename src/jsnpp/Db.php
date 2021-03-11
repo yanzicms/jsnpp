@@ -418,7 +418,12 @@ class Db extends Connector
                             $result = $result[0][$dbexec['action']];
                         }
                         elseif($dbexec['action'] == 'find'){
-                            $result = $result[0];
+                            if(isset($result[0])){
+                                $result = $result[0];
+                            }
+                            else{
+                                $result = [];
+                            }
                         }
                     }
                 }

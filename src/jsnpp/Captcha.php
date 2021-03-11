@@ -78,4 +78,8 @@ class Captcha
         imagepng($image);
         imagedestroy($image);
     }
+    public function clear()
+    {
+        $this->session->remove('_jsnpp_captcha');
+    }
 }

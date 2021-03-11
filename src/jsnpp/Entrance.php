@@ -18,81 +18,83 @@ class Entrance extends Connector
         $this->session = $this->app->get('session');
         $this->lang = $this->app->get('lang');
     }
-    public function check($item, $check = null, $alert = null)
+    public function check($item, $check = null, $alert = null, $ischeck = true)
     {
-        $this->set('execCheck', $item, $check, $alert);
+        $this->set('execCheck', $item, $check, $alert, $ischeck);
         return $this;
     }
-    protected function execCheck($item, $check, $alert)
+    protected function execCheck($item, $check, $alert, $ischeck)
     {
-        if(!is_null($check) && is_string($check)){
-            $check = trim($check);
-        }
         $list = [];
         $result = true;
         $message = 'ok';
-        if(is_bool($item) && is_null($alert)){
-            if(!$item){
-                $this->ignore();
-                if(is_null($check)){
-                    return false;
-                }
-                else{
-                    $result = false;
-                    $list[] = $message = $check;
+        if($ischeck){
+            if(!is_null($check) && is_string($check)){
+                $check = trim($check);
+            }
+            if(is_bool($item) && is_null($alert)){
+                if(!$item){
+                    $this->ignore();
+                    if(is_null($check)){
+                        return false;
+                    }
+                    else{
+                        $result = false;
+                        $list[] = $message = $check;
+                    }
                 }
             }
-        }
-        elseif(is_null($check) && is_null($alert)){
-            $loweritem = strtolower(trim($item));
-            if(in_array($loweritem, ['isajax', 'ispjax', 'ismobile'])){
-                if(($loweritem == 'isajax' && !$this->request->isAjax()) || ($loweritem == 'ispjax' && !$this->request->isPjax()) || ($loweritem == 'ismobile' && !$this->request->isMobile())){
-                    $this->ignore();
-                    return false;
+            elseif(is_null($check) && is_null($alert)){
+                $loweritem = strtolower(trim($item));
+                if(in_array($loweritem, ['isajax', 'ispjax', 'ismobile'])){
+                    if(($loweritem == 'isajax' && !$this->request->isAjax()) || ($loweritem == 'ispjax' && !$this->request->isPjax()) || ($loweritem == 'ismobile' && !$this->request->isMobile())){
+                        $this->ignore();
+                        return false;
+                    }
+                }
+                else{
+                    $exception = false;
+                    list($allowed, $itemArr) = $this->request->isMethodToArr($item);
+                    if(!$allowed){
+                        $this->ignore();
+                        return false;
+                    }
+                    else{
+                        foreach($itemArr as $val){
+                            if(!in_array($val, ['post', 'get', 'put', 'delete'])){
+                                $exception = true;
+                                break;
+                            }
+                        }
+                        if($exception){
+                            throw new ArgumentException('Parameter mismatch: check()');
+                        }
+                    }
                 }
             }
             else{
-                $exception = false;
-                list($allowed, $itemArr) = $this->request->isMethodToArr($item);
-                if(!$allowed){
-                    $this->ignore();
-                    return false;
-                }
-                else{
-                    foreach($itemArr as $val){
-                        if(!in_array($val, ['post', 'get', 'put', 'delete'])){
-                            $exception = true;
-                            break;
+                $errArr = [];
+                if(is_array($check)){
+                    foreach($check as $key => $val){
+                        $err = $this->doCheck($item, $key, $val);
+                        if($err !== false){
+                            $errArr[] = $err;
                         }
                     }
-                    if($exception){
-                        throw new ArgumentException('Parameter mismatch: check()');
-                    }
                 }
-            }
-        }
-        else{
-            $errArr = [];
-            if(is_array($check)){
-                foreach($check as $key => $val){
-                    $err = $this->doCheck($item, $key, $val);
+                else{
+                    $err = $this->doCheck($item, $check, $alert);
                     if($err !== false){
                         $errArr[] = $err;
                     }
                 }
-            }
-            else{
-                $err = $this->doCheck($item, $check, $alert);
-                if($err !== false){
-                    $errArr[] = $err;
+                if(count($errArr) > 0){
+                    $message = $errArr[0];
+                    foreach($errArr as $ekey => $eval){
+                        $list[] = $eval;
+                    }
+                    $result = false;
                 }
-            }
-            if(count($errArr) > 0){
-                $message = $errArr[0];
-                foreach($errArr as $ekey => $eval){
-                    $list[] = $eval;
-                }
-                $result = false;
             }
         }
         return [
@@ -236,6 +238,9 @@ class Entrance extends Connector
                     else{
                         $re = $this->lang->translate('Verification code error');
                     }
+                }
+                if($this->app->getConfig('useonce')){
+                    $this->session->remove('_jsnpp_captcha');
                 }
                 break;
         }
