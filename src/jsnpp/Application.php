@@ -14,7 +14,7 @@ use jsnpp\exception\FuncNotFoundException;
 
 class Application
 {
-    const VERSION = '1.7.3';
+    const VERSION = '1.8.4';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -369,5 +369,27 @@ class Application
             $this->routing[$name] = $value;
         }
         Tools::writeConfig($this->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routing.php', $name, $value);
+    }
+    public function writeCustomize($customize, $name, $value = '')
+    {
+        if(substr($customize, -4) == '.php'){
+            $customize = substr($customize, 0, -4);
+        }
+        $cusarr = $this->getConfig('customize');
+        if(!in_array($customize, $cusarr)){
+            $cusarr[] = $customize;
+            $this->writeConfig('customize', $cusarr);
+            $data = '<?php' . PHP_EOL . 'return [' . PHP_EOL . '];';
+            file_put_contents($this->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . $customize . '.php', $data);
+        }
+        if(is_array($name)){
+            foreach($name as $key => $val){
+                $this->config[$key] = $val;
+            }
+        }
+        else{
+            $this->config[$name] = $value;
+        }
+        Tools::writeConfig($this->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . $customize . '.php', $name, $value);
     }
 }

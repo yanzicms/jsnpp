@@ -21,7 +21,13 @@ class Jsnpp
     }
     public function startup()
     {
-        $this->app->setConfig(Tools::load($this->app->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php'));
+        $configenv = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . '.env';
+        if(is_file($configenv)){
+            $this->app->setConfig(Tools::loadini($configenv));
+        }
+        else{
+            $this->app->setConfig(Tools::load($this->app->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'config.php'));
+        }
         $dbenv = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . '.env.db';
         if(is_file($dbenv)){
             $this->app->setDb(Tools::loadini($dbenv));

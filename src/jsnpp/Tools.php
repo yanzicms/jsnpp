@@ -32,7 +32,15 @@ class Tools
     }
     public static function loadini($file)
     {
-        return parse_ini_file($file);
+        $ini = parse_ini_file($file);
+        foreach($ini as $key => $val){
+            $val = trim($val);
+            if(substr($val, 0, 1) == '[' && substr($val, -1) == ']'){
+                $val = substr($val, 1, -1);
+                $ini[$key] = self::toArrTrim($val, ',');
+            }
+        }
+        return $ini;
     }
     public static function isJson($str)
     {
@@ -88,7 +96,15 @@ class Tools
             @chmod($configFile, 0755);
         }
         $config = file($configFile);
-        array_pop($config);
+        $last = array_pop($config);
+        $last = trim($last);
+        while(empty($last)){
+            $last = array_pop($config);
+            $last = trim($last);
+        }
+        if($last == 'return [];'){
+            array_push($config, 'return [' . PHP_EOL);
+        }
         $outconfig = '';
         $have = false;
         foreach($config as $key => $val){
@@ -101,6 +117,7 @@ class Tools
                 if(self::eqorhas($oname, $name)){
                     if(is_array($name)){
                         $value = $name[$oname];
+                        unset($name[$oname]);
                     }
                     $type = gettype($value);
                     $right = $item[0] . '=> ';
@@ -130,28 +147,55 @@ class Tools
                 }
             }
         }
-        if(!$have){
-            $outconfig .= '    \'' . $name . '\' => ';
-            $type = gettype($value);
-            switch($type){
-                case 'integer':
-                    $outconfig .= $value . ',';
-                    break;
-                case 'array':
-                    $tempv = '[';
-                    foreach($value as $skey => $sval){
-                        $tempv .= '\'' . $sval . '\',';
+        if(!$have || (is_array($name) && count($name) > 0)){
+            if(is_array($name)){
+                foreach($name as $nkey => $nval){
+                    $outconfig .= '    \'' . $nkey . '\' => ';
+                    $type = gettype($nval);
+                    switch($type){
+                        case 'integer':
+                            $outconfig .= $nval . ',';
+                            break;
+                        case 'array':
+                            $tempv = '[';
+                            foreach($nval as $skey => $sval){
+                                $tempv .= '\'' . $sval . '\',';
+                            }
+                            $tempv = rtrim($tempv, ',') . ']';
+                            $outconfig .= $tempv . ',';
+                            break;
+                        case 'boolean':
+                            $outconfig .= (($nval == true) ? 'true' : 'false') . ',';
+                            break;
+                        default:
+                            $outconfig .= '\'' . $nval . '\',';
                     }
-                    $tempv = rtrim($tempv, ',') . ']';
-                    $outconfig .= $tempv . ',';
-                    break;
-                case 'boolean':
-                    $outconfig .= (($value == true) ? 'true' : 'false') . ',';
-                    break;
-                default:
-                    $outconfig .= '\'' . $value . '\',';
+                    $outconfig .= PHP_EOL;
+                }
             }
-            $outconfig .= PHP_EOL;
+            else{
+                $outconfig .= '    \'' . $name . '\' => ';
+                $type = gettype($value);
+                switch($type){
+                    case 'integer':
+                        $outconfig .= $value . ',';
+                        break;
+                    case 'array':
+                        $tempv = '[';
+                        foreach($value as $skey => $sval){
+                            $tempv .= '\'' . $sval . '\',';
+                        }
+                        $tempv = rtrim($tempv, ',') . ']';
+                        $outconfig .= $tempv . ',';
+                        break;
+                    case 'boolean':
+                        $outconfig .= (($value == true) ? 'true' : 'false') . ',';
+                        break;
+                    default:
+                        $outconfig .= '\'' . $value . '\',';
+                }
+                $outconfig .= PHP_EOL;
+            }
         }
         $outconfig .= '];';
         file_put_contents($configFile, $outconfig);

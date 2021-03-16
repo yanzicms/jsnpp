@@ -128,7 +128,7 @@ class Response
         $compfile = md5($content);
         $comp = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'assist' . DIRECTORY_SEPARATOR . 'comp' . DIRECTORY_SEPARATOR . $compfile . '.php';
         if(!is_file($comp)){
-            $tpl = $this->convert($content, $ostart, $oend, $start, $end);
+            $tpl = $this->convert($content, $start, $end);
             file_put_contents($comp, $tpl);
         }
         $this->outheader();
@@ -136,7 +136,7 @@ class Response
         include $comp;
         exit();
     }
-    private function convert($tpl, $ostart, $oend, $start, $end)
+    private function convert($tpl, $start, $end)
     {
         $jsnpp = '#jsnpp#%jsnppbound%';
         $jsnpps = '#jsnpp#';

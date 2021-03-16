@@ -77,4 +77,8 @@ class Route
     {
         return $this->base(false);
     }
+    public function rootUrlFull()
+    {
+        return ($this->request->isHttps() ? 'https://' : 'http://') . $this->request->host() . $this->base(false);
+    }
 }
