@@ -89,7 +89,7 @@ class File
     }
     public function clear()
     {
-        $this->delDir($this->cachePath);
+        $this->clearDir($this->cachePath);
     }
     public function getMultiple($keys, $default = null)
     {
@@ -147,7 +147,8 @@ class File
         }
         return $cachePath;
     }
-    private function delDir($dirname)
+    
+    private function clearDir($dirname)
     {
         if(!is_dir($dirname)){
             return false;
@@ -155,13 +156,13 @@ class File
         $items = new FilesystemIterator($dirname);
         foreach($items as $item){
             if($item->isDir() && !$item->isLink()){
-                $this->delDir($item->getPathname());
+                $this->clearDir($item->getPathname());
+                @rmdir($item->getPathname());
             }
             else{
                 @unlink($item->getPathname());
             }
         }
-        @rmdir($dirname);
         return true;
     }
 }

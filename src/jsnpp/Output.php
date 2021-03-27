@@ -16,17 +16,34 @@ class Output extends Connector
     public function initialize(){
         $this->route = $this->app->get('route');
     }
-    public function assign($name, $value = '')
+    public function assign($name, $value = null)
     {
-        $this->set('execAssign', $name, $value);
+        if(!is_array($name) && is_null($value)){
+            $detr = debug_backtrace();
+            $class = str_replace('/', '\\', $detr[1]['class']);
+        }
+        else{
+            $class = null;
+        }
+        $this->set('execAssign', $name, $value, $class);
         return $this;
     }
-    protected function execAssign($name, $value)
+    protected function execAssign($name, $value, $class)
     {
-        if(is_string($value) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
-            $value = $this->findBoxValue($metchs[1]);
+        if(!is_array($name) && is_null($value) && !is_null($class)){
+            $this->app->appMethod($class, $name);
         }
-        $this->response->setAssign($name, $value);
+        else{
+            if(is_string($value) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+                $value = $this->findBoxValue($metchs[1]);
+            }
+            $this->response->setAssign($name, $value);
+        }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
     }
     public function display($tplfile = '')
     {
@@ -53,6 +70,15 @@ class Output extends Connector
         }
         elseif(is_string($tplfile) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $tplfile, $metchs)){
             $this->response->receive($this->findBoxValue($metchs[1]))->output();
+            exit();
+        }
+        elseif(is_array($tplfile)){
+            foreach($tplfile as $key => $val){
+                if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $val, $metchs)){
+                    $tplfile[$key] = $this->findBoxValue($metchs[1]);
+                }
+            }
+            $this->response->receive($tplfile)->output();
             exit();
         }
         else{
@@ -82,6 +108,19 @@ class Output extends Connector
     protected function execRedirect($name, $array)
     {
         $this->route->redirect($name, $array);
+        exit();
+    }
+    public function dump($value)
+    {
+        $this->set('execDump', $value);
+        return $this;
+    }
+    protected function execDump($value)
+    {
+        if(is_string($value) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+            $value = $this->findBoxValue($metchs[1]);
+        }
+        dump($value);
         exit();
     }
     private function findBoxValue($mstr)

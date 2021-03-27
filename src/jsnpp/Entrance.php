@@ -133,116 +133,116 @@ class Entrance extends Connector
         }
         $check = strtolower(trim($check));
         $re = false;
-        switch($check){
-            case 'require':
-                if(trim($item) == ''){
-                    $re = $alert;
-                }
-                break;
-            case 'accepted':
-                if(!in_array($item, ['1', 'on', 'yes'])){
-                    $re = $alert;
-                }
-                break;
-            case 'date':
-                if(strtotime($item) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'boolean':
-            case 'bool':
-                if(!in_array($item, [true, false, 0, 1, '0', '1'], true)){
-                    $re = $alert;
-                }
-                break;
-            case 'number':
-                if(!ctype_digit(strval($item))){
-                    $re = $alert;
-                }
-                break;
-            case 'alphanum':
-                if(!ctype_alnum($item)){
-                    $re = $alert;
-                }
-                break;
-            case 'url':
-                if(filter_var($item, FILTER_VALIDATE_URL) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'email':
-                if(filter_var($item, FILTER_VALIDATE_EMAIL) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'ip':
-                if(filter_var($item, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'integer':
-                if(filter_var($item, FILTER_VALIDATE_INT) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'macaddr':
-                if(filter_var($item, FILTER_VALIDATE_MAC) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'float':
-                if(filter_var($item, FILTER_VALIDATE_FLOAT) === false){
-                    $re = $alert;
-                }
-                break;
-            case 'alpha':
-                if(!preg_match('/^[A-Za-z]+$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'alphadash':
-                if(!preg_match('/^[A-Za-z0-9\-\_]+$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'alphanumunder':
-                if(!preg_match('/^[A-Za-z][A-Za-z0-9\_]*$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'mobile':
-                if(!preg_match('/^1[3-9]\d{9}$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'idcard':
-                if(!preg_match('/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'zipcode':
-                if(!preg_match('/^\d{6}$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'regex':
-                if(!preg_match('/^'.$regex.'$/', $item)){
-                    $re = $alert;
-                }
-                break;
-            case 'captcha':
-                if(strtolower($this->session->get('_jsnpp_captcha')) != strtolower($item)){
-                    if(!empty($alert)){
+        if($check == 'require' && trim($item) == ''){
+            $re = $alert;
+        }
+        elseif(trim($item) != ''){
+            switch($check){
+                case 'accepted':
+                    if(!in_array($item, ['1', 'on', 'yes'])){
                         $re = $alert;
                     }
-                    else{
-                        $re = $this->lang->translate('Verification code error');
+                    break;
+                case 'date':
+                    if(strtotime($item) === false){
+                        $re = $alert;
                     }
-                }
-                if($this->app->getConfig('useonce')){
-                    $this->session->remove('_jsnpp_captcha');
-                }
-                break;
+                    break;
+                case 'boolean':
+                case 'bool':
+                    if(!in_array($item, [true, false, 0, 1, '0', '1'], true)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'number':
+                    if(!ctype_digit(strval($item))){
+                        $re = $alert;
+                    }
+                    break;
+                case 'alphanum':
+                    if(!ctype_alnum($item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'url':
+                    if(filter_var($item, FILTER_VALIDATE_URL) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'email':
+                    if(filter_var($item, FILTER_VALIDATE_EMAIL) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'ip':
+                    if(filter_var($item, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_IPV6) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'integer':
+                    if(filter_var($item, FILTER_VALIDATE_INT) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'macaddr':
+                    if(filter_var($item, FILTER_VALIDATE_MAC) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'float':
+                    if(filter_var($item, FILTER_VALIDATE_FLOAT) === false){
+                        $re = $alert;
+                    }
+                    break;
+                case 'alpha':
+                    if(!preg_match('/^[A-Za-z]+$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'alphadash':
+                    if(!preg_match('/^[A-Za-z0-9\-\_]+$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'alphanumunder':
+                    if(!preg_match('/^[A-Za-z][A-Za-z0-9\_]*$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'mobile':
+                    if(!preg_match('/^1[3-9]\d{9}$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'idcard':
+                    if(!preg_match('/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}$)/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'zipcode':
+                    if(!preg_match('/^\d{6}$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'regex':
+                    if(!preg_match('/^'.$regex.'$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'captcha':
+                    if(strtolower($this->session->get('_jsnpp_captcha')) != strtolower($item)){
+                        if(!empty($alert)){
+                            $re = $alert;
+                        }
+                        else{
+                            $re = $this->lang->translate('Verification code error');
+                        }
+                    }
+                    if($this->app->getConfig('useonce')){
+                        $this->session->remove('_jsnpp_captcha');
+                    }
+                    break;
+            }
         }
         return $re;
     }

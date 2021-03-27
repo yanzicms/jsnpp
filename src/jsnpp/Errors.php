@@ -8,35 +8,41 @@
  */
 namespace jsnpp;
 
-use jsnpp\exception\ErrorException;
-
 class Errors
 {
     private $app;
     private $request;
     private $lang;
-    public function __construct(Application $app, Request $request, Lang $lang)
+    private $route;
+    public function __construct(Application $app, Request $request, Lang $lang, Route $route)
     {
         $this->app = $app;
         $this->request = $request;
         $this->lang = $lang;
+        $this->route = $route;
         @set_error_handler([$this, 'error_handler']);
         @set_exception_handler([$this, 'exception_handler']);
     }
-    public function exception_handler($exception) {
-        ob_clean();
-        if($this->app->getConfig('debug') == false){
-            echo 'Error';
+    public function exception_handler($exception)
+    {
+        if($this->app->getConfig('missed') == '404'){
+            $this->route->redirect('index/fail');
         }
         else{
-            if($this->request->isAjax()){
-                echo $this->lang->translate('Uncaught exception'). ': ' . $exception->getMessage();
+            ob_clean();
+            if($this->app->getConfig('debug') == false){
+                echo 'Error';
             }
             else{
-                echo '<div style="padding: 1.5rem;background-color: lightgoldenrodyellow">' . $this->lang->translate('Uncaught exception'). ': ' . $exception->getMessage() . '</div>';
+                if($this->request->isAjax()){
+                    echo $this->lang->translate('Uncaught exception'). ': ' . $exception->getMessage();
+                }
+                else{
+                    echo '<div style="padding: 1.5rem;background-color: lightgoldenrodyellow">' . $this->lang->translate('Uncaught exception'). ': ' . $exception->getMessage() . '</div>';
+                }
             }
+            ob_end_flush();
         }
-        ob_end_flush();
         exit();
     }
     public function error_handler($errno, $errstr, $errfile, $errline)

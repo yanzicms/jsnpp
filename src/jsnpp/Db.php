@@ -36,12 +36,30 @@ class Db extends Connector
         $this->execcode = [];
         foreach($this->statement as $item){
             if($item['action'] == 'insert'){
-                $field = array_keys($item['slice']['data']);
+                $isTwoDim = Tools::isTwoDimensionalArray($item['slice']['data']);
+                if($isTwoDim){
+                    $field = array_keys(current($item['slice']['data']));
+                }
+                else{
+                    $field = array_keys($item['slice']['data']);
+                }
                 $value = str_repeat('?', count($field));
                 $value = trim(chunk_split($value, 1, ','), ',');
                 $field = implode(',', $field);
-                $varr = array_values($item['slice']['data']);
-                $statement = 'INSERT INTO ' . $item['slice']['table'] . ' ('.$field.') VALUES ('.$value.')';
+                if($isTwoDim){
+                    $varr = [];
+                    $statement = 'INSERT INTO ' . $item['slice']['table'] . ' ('.$field.') VALUES ';
+                    foreach($item['slice']['data'] as $tkey => $tval){
+                        $varr = array_merge($varr, array_values($tval));
+                        $statement .= '('.$value.'),';
+                    }
+                    $statement = rtrim($statement, ',');
+                }
+                else{
+                    $varr = array_values($item['slice']['data']);
+                    $statement = 'INSERT INTO ' . $item['slice']['table'] . ' ('.$field.') VALUES ('.$value.')';
+                }
+                $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -50,23 +68,36 @@ class Db extends Connector
                     'transaction' => $transaction,
                     'statement' => $statement,
                     'bind' => $varr,
+                    'removecache' => $removeCache,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'update'){
-                $field = array_keys($item['slice']['data']);
-                $field = array_map(function($val){
-                    $val .= '= ? ';
-                    return $val;
-                }, $field);
+                $field = [];
+                $varr = [];
+                foreach($item['slice']['data'] as $key => $val){
+                    if($this->inexpression($key, $val)){
+                        $field[] = $key . '=' . $val;
+                    }
+                    else{
+                        $field[] = $key . '= ? ';
+                        $varr[] = $val;
+                    }
+                }
                 $set = implode(',', $field);
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
-                $varr = array_values($item['slice']['data']);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 if(count($whereArr) > 0){
                     $varr = array_merge($varr, $whereArr);
                 }
                 $statement = 'UPDATE '.$item['slice']['table'].' SET '.$set.' WHERE '.$where;
+                $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -75,13 +106,21 @@ class Db extends Connector
                     'transaction' => $transaction,
                     'statement' => $statement,
                     'bind' => $varr,
+                    'removecache' => $removeCache,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'delete'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 $statement = 'DELETE FROM ' . $item['slice']['table'] . ' WHERE ' . $where;
+                $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -90,12 +129,19 @@ class Db extends Connector
                     'transaction' => $transaction,
                     'statement' => $statement,
                     'bind' => $whereArr,
+                    'removecache' => $removeCache,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'select'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 if(isset($item['slice']['paging'])){
                     $currentpage = $this->currentpage();
                     $statement = $this->getSelect($item['slice'], $where, false, $item['slice']['paging']['per'], $currentpage);
@@ -104,6 +150,7 @@ class Db extends Connector
                     $statement = $this->getSelect($item['slice'], $where);
                 }
                 $cache = isset($item['slice']['cache']) ? $item['slice']['cache'] : 0;
+                $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $paging = [];
@@ -120,13 +167,20 @@ class Db extends Connector
                     'countstatement' => $countstatement,
                     'bind' => $whereArr,
                     'cache' => $cache,
+                    'cachetag' => $cacheTag,
                     'paging' => $paging,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'subquery'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 $statement = $this->getSelect($item['slice'], $where);
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
@@ -141,9 +195,16 @@ class Db extends Connector
             }
             elseif($item['action'] == 'find'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 $statement = $this->getSelect($item['slice'], $where, true);
                 $cache = isset($item['slice']['cache']) ? $item['slice']['cache'] : 0;
+                $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -153,18 +214,26 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $whereArr,
                     'cache' => $cache,
+                    'cachetag' => $cacheTag,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'count'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 $count = null;
                 if(isset($item['slice']['count'])){
                     $count = $item['slice']['count'];
                 }
                 $statement = $this->getploySelect($item['slice'], $where, $item['action'], 'total', $count);
                 $cache = isset($item['slice']['cache']) ? $item['slice']['cache'] : 0;
+                $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -174,14 +243,22 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $whereArr,
                     'cache' => $cache,
+                    'cachetag' => $cacheTag,
                     'box' => $box
                 ];
             }
             elseif($item['action'] == 'max' || $item['action'] == 'min' || $item['action'] == 'avg' || $item['action'] == 'sum'){
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
-                list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                if(isset($item['slice']['where'])){
+                    list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
+                }
+                else{
+                    $where = '';
+                    $whereArr = [];
+                }
                 $statement = $this->getploySelect($item['slice'], $where, $item['action'], $item['action'], $item['slice'][$item['action']]);
                 $cache = isset($item['slice']['cache']) ? $item['slice']['cache'] : 0;
+                $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
                 $this->execcode[] = [
@@ -191,6 +268,7 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $whereArr,
                     'cache' => $cache,
+                    'cachetag' => $cacheTag,
                     'box' => $box
                 ];
             }
@@ -205,6 +283,7 @@ class Db extends Connector
                 $orderAll = '';
                 $limitAll = '';
                 $cacheAll = 0;
+                $cacheTagAll = '';
                 $pagingAll = [];
                 $tmpon = '';
                 $tmpname = '';
@@ -212,11 +291,19 @@ class Db extends Connector
                 foreach($item['slice'] as $joinItem){
                     $whereParam = isset($joinItem['slice']['whereParam']) ? $joinItem['slice']['whereParam'] : [];
                     $prefix = isset($joinItem['slice']['alias']) ? $joinItem['slice']['alias'] : $joinItem['slice']['table'];
-                    list($where, $whereArr) = $this->getWhere($joinItem['slice']['where'], $whereParam, $prefix);
+                    if(isset($joinItem['slice']['where'])){
+                        list($where, $whereArr) = $this->getWhere($joinItem['slice']['where'], $whereParam, $prefix);
+                    }
+                    else{
+                        $where = '';
+                        $whereArr = [];
+                    }
                     $whereArrAll = array_merge($whereArrAll, $whereArr);
                     $selfield = $this->getField($joinItem['slice']['field'], $prefix);
                     $fields .= empty($fields) ? $selfield : ',' . $selfield;
-                    $whereAll .= empty($whereAll) ? '(' . $where . ')' : ' AND (' . $where . ')';
+                    if(!empty($where)){
+                        $whereAll .= empty($whereAll) ? '(' . $where . ')' : ' AND (' . $where . ')';
+                    }
                     $tname = $joinItem['slice']['table'];
                     if(isset($joinItem['slice']['alias'])){
                         $tname .= ' ' . $joinItem['slice']['alias'];
@@ -259,6 +346,9 @@ class Db extends Connector
                     if(isset($joinItem['slice']['cache']) && $joinItem['slice']['cache'] > $cacheAll){
                         $cacheAll = $joinItem['slice']['cache'];
                     }
+                    if(isset($joinItem['slice']['cacheTag'])){
+                        $cacheTagAll = $joinItem['slice']['cacheTag'];
+                    }
                     if(isset($joinItem['slice']['paging'])){
                         $pagingAll = $joinItem['slice']['paging'];
                     }
@@ -267,7 +357,10 @@ class Db extends Connector
                 $countstatement = '';
                 if($ispaging){
                     $countstatement = 'SELECT COUNT(*) AS total FROM ';
-                    $countstatement .= $jonAll . ' WHERE ' . $whereAll;
+                    $countstatement .= $jonAll;
+                    if(!empty($whereAll)){
+                        $countstatement .= ' WHERE ' . $whereAll;
+                    }
                     if(!empty($groupAll)){
                         $countstatement .= ' GROUP BY ' . $groupAll;
                     }
@@ -282,7 +375,10 @@ class Db extends Connector
                 if(!empty($distinct)){
                     $statement .= 'DISTINCT ';
                 }
-                $statement .= $fields . ' FROM ' . $jonAll . ' WHERE ' . $whereAll;
+                $statement .= $fields . ' FROM ' . $jonAll;
+                if(!empty($whereAll)){
+                    $statement .= ' WHERE ' . $whereAll;
+                }
                 if(!empty($groupAll)){
                     $statement .= ' GROUP BY ' . $groupAll;
                 }
@@ -310,6 +406,7 @@ class Db extends Connector
                     'countstatement' => $countstatement,
                     'bind' => $whereArrAll,
                     'cache' => $cacheAll,
+                    'cachetag' => $cacheTagAll,
                     'paging' => $pagingAll,
                     'box' => $box
                 ];
@@ -317,10 +414,17 @@ class Db extends Connector
             elseif($item['action'] == 'union'){
                 $unionStatement = '';
                 $unioncache = 0;
+                $unioncacheTag = '';
                 $whereArrAll = [];
                 foreach($item['slice'] as $unionItem){
                     $whereParam = isset($unionItem['slice']['whereParam']) ? $unionItem['slice']['whereParam'] : [];
-                    list($where, $whereArr) = $this->getWhere($unionItem['slice']['where'], $whereParam);
+                    if(isset($unionItem['slice']['where'])){
+                        list($where, $whereArr) = $this->getWhere($unionItem['slice']['where'], $whereParam);
+                    }
+                    else{
+                        $where = '';
+                        $whereArr = [];
+                    }
                     $whereArrAll = array_merge($whereArrAll, $whereArr);
                     $unionStatement .= $this->getSelect($unionItem['slice'], $where);
                     if($unionItem['action'] == 'union'){
@@ -332,6 +436,9 @@ class Db extends Connector
                     if(isset($unionItem['slice']['cache']) && $unionItem['slice']['cache'] > $unioncache){
                         $unioncache = $unionItem['slice']['cache'];
                     }
+                    if(isset($unionItem['slice']['cacheTag'])){
+                        $unioncacheTag = $unionItem['slice']['cacheTag'];
+                    }
                 }
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
@@ -342,6 +449,7 @@ class Db extends Connector
                     'statement' => $unionStatement,
                     'bind' => $whereArrAll,
                     'cache' => $unioncache,
+                    'cachetag' => $unioncacheTag,
                     'box' => $box
                 ];
             }
@@ -350,7 +458,7 @@ class Db extends Connector
         $this->beginTransaction = [];
         $this->endTransaction = [];
         $this->statement = [];
-        $this->boxs = array_merge($this->box->get(), $this->boxs);
+        $this->boxs = array_merge($this->boxs, $this->box->get());
         try{
             foreach($this->execcode as $dbexec){
                 if($dbexec['transaction'] == 'beginTransaction'){
@@ -368,83 +476,91 @@ class Db extends Connector
                 $this->dobind($dbexec['bind']);
                 $statementbind = $dbexec['bind'];
                 list($statement, $statementbind) = $this->dealstatement($statement, $statementbind);
-                $hascache = false;
-                $symbol = '';
-                $result = '';
-                if(isset($dbexec['cache'])){
-                    $symbol = md5(serialize([$statement, $statementbind]) . (isset($_GET['page']) ? '_' . $_GET['page'] : ''));
-                    if($this->cache->has($symbol)){
-                        $result = $this->cache->get($symbol);
-                        $hascache = true;
+                if(!preg_match('/\s+in\s+\(\)/i', preg_replace('/(".*?")|(\'.*?\')/', '', $statement))){
+                    $hascache = false;
+                    $symbol = '';
+                    $result = '';
+                    if(isset($dbexec['cache'])){
+                        $symbol = md5(serialize([$statement, $statementbind]) . (isset($_GET['page']) ? '_' . $_GET['page'] : ''));
+                        if($this->cache->has($symbol)){
+                            $result = $this->cache->get($symbol);
+                            $hascache = true;
+                        }
                     }
-                }
-                if($hascache == false){
-                    $result = $this->database->sql($statement, $statementbind);
-                    if(isset($dbexec['paging'])){
-                        $total = $dbexec['paging']['total'];
-                        if($total < 0 && isset($dbexec['countstatement'])){
-                            $countstatement = $dbexec['countstatement'];
-                            $countstatementbind = $dbexec['bind'];
-                            list($countstatement, $countstatementbind) = $this->dealstatement($countstatement, $countstatementbind);
-                            $recount = $this->database->sql($countstatement, $countstatementbind);
-                            $total = $recount[0]['total'];
-                        }
-                        $page = $this->currentpage();
-                        $pages = ceil($total / $dbexec['paging']['per']);
-                        $paramArr = $dbexec['paging']['param'];
-                        if(isset($paramArr['page'])){
-                            unset($paramArr['page']);
-                        }
-                        parse_str($_SERVER['QUERY_STRING'], $queryArr);
-                        if(isset($queryArr['page'])){
-                            unset($queryArr['page']);
-                        }
-                        $queryArr = array_merge($queryArr, $paramArr);
-                        $paramStr = http_build_query($queryArr);
-                        $urlPath = parse_url($this->request->requestUri(), PHP_URL_PATH);
-                        $pagingUrl = empty($paramStr) ? $urlPath . '?page=' : $urlPath . '?' . $paramStr . '&page=';
-                        $result = [
-                            'total' => $total,
-                            'per' => $dbexec['paging']['per'],
-                            'page' => $page,
-                            'pages' => $pages,
-                            'paging' => $this->pagination->getHtml($page, $pages, $pagingUrl),
-                            'simplePaging' => $this->pagination->getSimpleHtml($page, $pages, $pagingUrl),
-                            'data' => $result,
-                        ];
-                    }
-                    else{
-                        if(in_array($dbexec['action'], ['count','max','min','avg','sum'])){
-                            $result = $result[0][$dbexec['action']];
-                        }
-                        elseif($dbexec['action'] == 'find'){
-                            if(isset($result[0])){
-                                $result = $result[0];
+                    if($hascache == false){
+                        $result = $this->database->sql($statement, $statementbind);
+                        if(isset($dbexec['paging']) && !empty($dbexec['paging'])){
+                            $total = $dbexec['paging']['total'];
+                            if($total < 0 && isset($dbexec['countstatement'])){
+                                $countstatement = $dbexec['countstatement'];
+                                $countstatementbind = $dbexec['bind'];
+                                list($countstatement, $countstatementbind) = $this->dealstatement($countstatement, $countstatementbind);
+                                $recount = $this->database->sql($countstatement, $countstatementbind);
+                                $total = $recount[0]['total'];
                             }
-                            else{
-                                $result = [];
+                            $page = $this->currentpage();
+                            $pages = ceil($total / $dbexec['paging']['per']);
+                            $paramArr = $dbexec['paging']['param'];
+                            if(isset($paramArr['page'])){
+                                unset($paramArr['page']);
+                            }
+                            parse_str($_SERVER['QUERY_STRING'], $queryArr);
+                            if(isset($queryArr['page'])){
+                                unset($queryArr['page']);
+                            }
+                            $queryArr = array_merge($queryArr, $paramArr);
+                            $paramStr = http_build_query($queryArr);
+                            $urlPath = parse_url($this->request->requestUri(), PHP_URL_PATH);
+                            $pagingUrl = empty($paramStr) ? $urlPath . '?page=' : $urlPath . '?' . $paramStr . '&page=';
+                            $result = [
+                                'total' => $total,
+                                'per' => $dbexec['paging']['per'],
+                                'page' => $page,
+                                'pages' => $pages,
+                                'paging' => $this->pagination->getHtml($page, $pages, $pagingUrl),
+                                'simplePaging' => $this->pagination->getSimpleHtml($page, $pages, $pagingUrl),
+                                'data' => $result,
+                            ];
+                        }
+                        else{
+                            if(in_array($dbexec['action'], ['count','max','min','avg','sum'])){
+                                $result = $result[0][$dbexec['action']];
+                            }
+                            elseif($dbexec['action'] == 'find'){
+                                if(isset($result[0])){
+                                    $result = $result[0];
+                                }
+                                else{
+                                    $result = [];
+                                }
                             }
                         }
                     }
-                }
-                if(isset($dbexec['cache'])){
-                    $this->cache->set($symbol, $result, intval($dbexec['cache']));
-                }
-                if(isset($dbexec['box']) && !empty($dbexec['box'])){
-                    $this->boxs[$dbexec['box']] = $this->box->set($dbexec['box'], $result);
+                    if(isset($dbexec['cache']) && !empty($dbexec['cachetag'])){
+                        $this->cache->tag($dbexec['cachetag'])->set($symbol, $result, intval($dbexec['cache']));
+                    }
+                    elseif(isset($dbexec['cache'])){
+                        $this->cache->set($symbol, $result, intval($dbexec['cache']));
+                    }
+                    if(!empty($dbexec['removecache'])){
+                        $this->cache->deleteTag($dbexec['removecache']);
+                    }
+                    if(isset($dbexec['box']) && !empty($dbexec['box'])){
+                        $this->boxs[$dbexec['box']] = $this->box->set($dbexec['box'], $result);
+                    }
                 }
                 if($dbexec['transaction'] == 'endTransaction'){
                     $this->database->endTransaction();
                 }
             }
+            $this->boxs['transactionIsOk'] = $this->box->set('transactionIsOk', true);
         }
         catch (\PDOException $e){
             if($hasTransaction){
                 $this->database->rollBack();
+                $this->boxs['transactionIsOk'] = $this->box->set('transactionIsOk', false);
             }
-            else{
-                throw new PDOExecutionException('Database execution error: ' . $e->getMessage());
-            }
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage());
         }
     }
     private function dobind(&$bind)
@@ -487,6 +603,7 @@ class Db extends Connector
             }
             else{
                 $value = $this->findValue($metches[1]);
+                $statement = preg_replace('/(\s+in\s+)' . str_replace(['(', ')'], ['\(', '\)'], $metches[0]) . '/i', '$1(' . $value . ')', $statement);
                 $statement = str_replace($metches[0], '\'' . $value . '\'', $statement);
             }
         }
@@ -522,6 +639,13 @@ class Db extends Connector
         $box = '';
         if(isset($slice['box'])){
             $box = trim($slice['box']);
+        }
+        else{
+            foreach($slice as $key => $val){
+                if(isset($val['slice']) && isset($val['slice']['box'])){
+                    $box = trim($val['slice']['box']);
+                }
+            }
         }
         return $box;
     }
@@ -566,7 +690,9 @@ class Db extends Connector
         if(isset($slice['alias'])){
             $statement .= ' ' . $slice['alias'];
         }
-        $statement .= ' WHERE ' . $where;
+        if(!empty($where)){
+            $statement .= ' WHERE ' . $where;
+        }
         if(isset($slice['group'])){
             $statement .= ' GROUP BY ' . $slice['group'];
         }
@@ -589,7 +715,9 @@ class Db extends Connector
         if(isset($slice['alias'])){
             $statement .= ' ' . $slice['alias'];
         }
-        $statement .= ' WHERE ' . $where;
+        if(!empty($where)){
+            $statement .= ' WHERE ' . $where;
+        }
         if(isset($slice['group'])){
             $statement .= ' GROUP BY ' . $slice['group'];
         }
@@ -748,14 +876,27 @@ class Db extends Connector
         $this->slice['alias'] = $alias;
         return $this->reok();
     }
-    public function cache($time)
+    public function cache($time, $tag = '')
     {
-        $this->set('execCache', $time);
+        $this->set('execCache', $time, $tag);
         return $this;
     }
-    protected function execCache($time)
+    protected function execCache($time, $tag)
     {
         $this->slice['cache'] = $time;
+        if(!empty($tag)){
+            $this->slice['cacheTag'] = $tag;
+        }
+        return $this->reok();
+    }
+    public function removeCache($tag = '')
+    {
+        $this->set('execRemoveCache', $tag);
+        return $this;
+    }
+    protected function execRemoveCache($tag)
+    {
+        $this->slice['removeCache'] = $tag;
         return $this->reok();
     }
     public function box($name)
@@ -1305,13 +1446,41 @@ class Db extends Connector
     private function doAddprefix($str, $prefix)
     {
         $arr = explode(' ', $str);
+        $isas = false;
         foreach($arr as $key => $val){
-            if(!in_array(strtoupper($val), ['AND', 'OR', 'BETWEEN', 'IN', 'NOT', 'LIKE', 'ASC', 'DESC', 'COUNT', 'MAX', 'MIN', 'AVG', 'SUM', 'EXISTS'])){
+            if(strtoupper($val) == 'AS'){
+                $isas = true;
+            }
+            if(!empty($val) && !in_array(strtoupper($val), ['AND', 'OR', 'BETWEEN', 'IN', 'NOT', 'LIKE', 'ASC', 'DESC', 'COUNT', 'MAX', 'MIN', 'AVG', 'SUM', 'EXISTS', 'AS'])){
                 $val = preg_replace('/([A-Za-z]([A-Za-z0-9_]*[A-Za-z0-9])*)$/i', $prefix . '.$1', $val);
-                $arr[$key] = preg_replace('/([A-Za-z]([A-Za-z0-9_]*[A-Za-z0-9])*)([^A-Za-z0-9_\(\.])/i', $prefix . '.$1$3', $val);
+                $val = preg_replace('/([A-Za-z]([A-Za-z0-9_]*[A-Za-z0-9])*)([^A-Za-z0-9_\(\.])/i', $prefix . '.$1$3', $val);
+                $prefixdotlen = strlen($prefix) + 1;
+                if($isas){
+                    $val = substr($val, $prefixdotlen);
+                    $isas = false;
+                }
+                if(strtolower(substr($val, 0, $prefixdotlen + 3)) == $prefix . '.asc' && !preg_match('/\w/i', substr($val, $prefixdotlen + 3, 1))){
+                    $val = substr($val, $prefixdotlen);
+                }
+                if(strtolower(substr($val, 0, $prefixdotlen + 4)) == $prefix . '.desc' && !preg_match('/\w/i', substr($val, $prefixdotlen + 4, 1))){
+                    $val = substr($val, $prefixdotlen);
+                }
+                $arr[$key] = $val;
             }
         }
         $str = implode(' ', $arr);
         return $str;
+    }
+    private function inexpression($key, $val)
+    {
+        if(preg_match('/\W' . $key . '\W/', ' ' . $val . ' ')){
+            $val = preg_replace('/^\w+\((.*)\)$/', '$1', trim($val));
+            $val = preg_replace(['/' . $key . '/', '/\s+/'], '', trim($val));
+            $val = str_replace(['+', '-', '*', '/', '%'], '', $val);
+            if(preg_match('/^\d+$/', $val)){
+                return true;
+            }
+        }
+        return false;
     }
 }

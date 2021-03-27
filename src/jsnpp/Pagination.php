@@ -16,6 +16,9 @@ class Pagination
     }
     public function getHtml($page, $pages, $pagingUrl)
     {
+        if($pages < 2 && !$this->app->getConfig('showone')){
+            return '';
+        }
         $dbtype = $this->app->getConfig('pagination');
         $dbtype = 'jsnpp\pagination\\' . ucfirst(strtolower(trim($dbtype)));
         $numbers = $this->app->getConfig('numbers');
@@ -27,6 +30,9 @@ class Pagination
     }
     public function getSimpleHtml($page, $pages, $pagingUrl)
     {
+        if($pages < 2 && !$this->app->getConfig('showone')){
+            return '';
+        }
         $dbtype = $this->app->getConfig('pagination');
         $dbtype = 'jsnpp\pagination\\' . ucfirst(strtolower(trim($dbtype)));
         $previous = $this->app->getConfig('previous');

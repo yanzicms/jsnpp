@@ -14,7 +14,7 @@ use jsnpp\exception\FuncNotFoundException;
 
 class Application
 {
-    const VERSION = '1.8.4';
+    const VERSION = '1.9.40';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -193,9 +193,12 @@ class Application
             $class = is_object($class) ? get_class($class) : $class;
             throw new FuncNotFoundException('method not exists: ' . $class . '::' . $method . '()', $e);
         }
-        if(!$reflect->isPublic()){
+        if(!$reflect->isPublic() && !$reflect->isProtected()){
             $class = is_object($class) ? get_class($class) : $class;
             throw new FuncNotFoundException('method not exists: ' . $class . '::' . $method . '()');
+        }
+        if($reflect->isProtected()){
+            $reflect->setAccessible(true);
         }
         $arguments = $this->getParams($reflect, $args);
         

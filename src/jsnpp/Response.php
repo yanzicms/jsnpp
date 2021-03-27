@@ -161,6 +161,10 @@ class Response
             }
             elseif(substr($val, 0, 4) == 'url('){
                 $url = trim(substr($val, 4, -1));
+                if(count($stack) > 0){
+                    $url = $this->toeach($stack, $url);
+                }
+                $url = $this->ptoa($url);
                 $match[$key] = '<?php echo url(' . $url . '); ?>';
             }
             elseif(substr($val, 0, 5) == 'each '){
@@ -169,25 +173,42 @@ class Response
                     $eacharr = $this->toeach($stack, $eacharr);
                     $eacharr = $this->ptoa($eacharr);
                 }
-                $stack[] = [$eacharr, $eachi];
+                $orderstr = '';
+                if($eachorder > 0){
+                    $orderstr = $eachorder;
+                }
                 $eachorder ++;
-                $match[$key] = '<?php $_jsnpp_template_'.$eachorder.' = count('.$eacharr.');
+                $stack[] = [$eacharr, $eachi, $eachorder];
+                $match[$key] = '<?php if(isset('.$eacharr.') && is_array('.$eacharr.') && count('.$eacharr.') > 0){
+$_jsnpp_keyarr_'.$eachorder.' = array_keys('.$eacharr.');
+}else{
+$_jsnpp_keyarr_'.$eachorder.' = [];
+}
+$_jsnpp_template_'.$eachorder.' = count($_jsnpp_keyarr_'.$eachorder.');
 $_jsnpp_template_'.$eachorder.' = ('.$eachto.' < 0) ? $_jsnpp_template_'.$eachorder.' : ('.$eachto.' > $_jsnpp_template_'.$eachorder.' ? $_jsnpp_template_'.$eachorder.' : '.$eachto.');
-for('.$eachi.' = '.$eachfrom.'; '.$eachi.' < $_jsnpp_template_'.$eachorder.'; '.$eachi.'+='.$eachstep.') { ?>';
+for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnpp_template_'.$eachorder.'; '.$eachi.'+='.$eachstep.', $order' . $orderstr . ' ++) { ?>';
             }
             elseif(substr($val, 0, 2) == 'if'){
+                $val = trim(substr($val, 2));
+                if(substr($val, 0, 1) != '(' || substr($val, -1) != ')'){
+                    $val = '(' . $val . ')';
+                }
                 if(count($stack) > 0){
                     $val = $this->toeach($stack, $val);
                 }
                 $val = $this->ptoa($val);
-                $match[$key] = '<?php ' . $val . ' { ?>';
+                $match[$key] = '<?php if' . $val . ' { ?>';
             }
             elseif(substr($val, 0, 6) == 'elseif'){
+                $val = trim(substr($val, 6));
+                if(substr($val, 0, 1) != '(' || substr($val, -1) != ')'){
+                    $val = '(' . $val . ')';
+                }
                 if(count($stack) > 0){
                     $val = $this->toeach($stack, $val);
                 }
                 $val = $this->ptoa($val);
-                $match[$key] = '<?php } ' . $val . ' { ?>';
+                $match[$key] = '<?php } elseif' . $val . ' { ?>';
             }
             elseif(substr($val, 0, 6) == 'empty '){
                 $val = substr($val, 6);
@@ -230,7 +251,12 @@ for('.$eachi.' = '.$eachfrom.'; '.$eachi.' < $_jsnpp_template_'.$eachorder.'; '.
                     if(false !== $funcpos = strpos($func, '(')){
                         $funcleft = substr($func, 0, $funcpos + 1);
                         $funcright = substr($func, $funcpos + 1);
-                        $fval = $funcleft . $val . ', ' . $funcright;
+                        if(trim($funcright) == ')'){
+                            $fval = $funcleft . $val . $funcright;
+                        }
+                        else{
+                            $fval = $funcleft . $val . ', ' . $funcright;
+                        }
                     }
                     else{
                         $fval = $func . '(' . $val . ')';
@@ -291,7 +317,8 @@ for('.$eachi.' = '.$eachfrom.'; '.$eachi.' < $_jsnpp_template_'.$eachorder.'; '.
     private function toeach(&$stack, $val)
     {
         foreach($stack as $skey => $sval){
-            $val = preg_replace('/\\'.$sval[1].'\./', $sval[0].'['.$sval[1].'].', $val);
+            $val = preg_replace('/\\'.$sval[1].'\./', $sval[0].'[$_jsnpp_keyarr_' . $sval[2] . '['.$sval[1].']].', $val);
+            $val = preg_replace('/\\'.$sval[1].'$/', $sval[0].'[$_jsnpp_keyarr_' . $sval[2] . '['.$sval[1].']]', $val);
         }
         return $val;
     }

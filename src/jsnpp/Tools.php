@@ -128,7 +128,7 @@ class Tools
                         case 'array':
                             $tempv = '[';
                             foreach($value as $skey => $sval){
-                                $tempv .= '\'' . $sval . '\',';
+                                $tempv .= '\'' . str_replace('\'', '\\\'', $sval) . '\',';
                             }
                             $tempv = rtrim($tempv, ',') . ']';
                             $right .= $tempv . ',';
@@ -137,7 +137,7 @@ class Tools
                             $right .= (($value == true) ? 'true' : 'false') . ',';
                             break;
                         default:
-                            $right .= '\'' . $value . '\',';
+                            $right .= '\'' . str_replace('\'', '\\\'', $value) . '\',';
                     }
                     $outconfig .= $right . PHP_EOL;
                     $have = true;
@@ -159,7 +159,7 @@ class Tools
                         case 'array':
                             $tempv = '[';
                             foreach($nval as $skey => $sval){
-                                $tempv .= '\'' . $sval . '\',';
+                                $tempv .= '\'' . str_replace('\'', '\\\'', $sval) . '\',';
                             }
                             $tempv = rtrim($tempv, ',') . ']';
                             $outconfig .= $tempv . ',';
@@ -168,7 +168,7 @@ class Tools
                             $outconfig .= (($nval == true) ? 'true' : 'false') . ',';
                             break;
                         default:
-                            $outconfig .= '\'' . $nval . '\',';
+                            $outconfig .= '\'' . str_replace('\'', '\\\'', $nval) . '\',';
                     }
                     $outconfig .= PHP_EOL;
                 }
@@ -183,7 +183,7 @@ class Tools
                     case 'array':
                         $tempv = '[';
                         foreach($value as $skey => $sval){
-                            $tempv .= '\'' . $sval . '\',';
+                            $tempv .= '\'' . str_replace('\'', '\\\'', $sval) . '\',';
                         }
                         $tempv = rtrim($tempv, ',') . ']';
                         $outconfig .= $tempv . ',';
@@ -192,7 +192,7 @@ class Tools
                         $outconfig .= (($value == true) ? 'true' : 'false') . ',';
                         break;
                     default:
-                        $outconfig .= '\'' . $value . '\',';
+                        $outconfig .= '\'' . str_replace('\'', '\\\'', $value) . '\',';
                 }
                 $outconfig .= PHP_EOL;
             }
@@ -207,5 +207,12 @@ class Tools
     public static function url($name, $arr = [])
     {
         return self::$url->url($name, $arr);
+    }
+    public static function isTwoDimensionalArray($arr)
+    {
+        if(count($arr, COUNT_RECURSIVE) > count($arr)){
+            return true;
+        }
+        return false;
     }
 }

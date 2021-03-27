@@ -85,7 +85,7 @@ class File
             else{
                 $temp = explode('.', $_FILES[$this->name]['name']);
                 $extension = end($temp);
-                $fileName = md5($_FILES[$this->name]['name']);
+                $fileName = md5($_FILES[$this->name]['name'] .time());
                 move_uploaded_file($_FILES[$this->name]['tmp_name'], $pathAll . DIRECTORY_SEPARATOR . $fileName . '.' . $extension);
                 $file = str_replace(DIRECTORY_SEPARATOR, '/', $path . '/' . $fileName . '.' . $extension);
             }

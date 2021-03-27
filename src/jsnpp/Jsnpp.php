@@ -37,6 +37,10 @@ class Jsnpp
         }
         $this->app->setRouting(Tools::load($this->app->rootDir() . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'routing.php'));
         Tools::load(__DIR__ . DIRECTORY_SEPARATOR . 'helper.php');
+        $common = $this->app->appDir() . DIRECTORY_SEPARATOR . 'common.php';
+        if(is_file($common)){
+            Tools::load($common);
+        }
         date_default_timezone_set($this->app->getConfig('timezone'));
         error_reporting($this->app->getConfig('debug') ? E_ALL : 0);
         ob_start();

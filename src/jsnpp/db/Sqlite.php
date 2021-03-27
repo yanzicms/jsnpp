@@ -74,7 +74,6 @@ class Sqlite
         if(!is_null($this->dbh)){
             $result = true;
         }
-        $this->disconnect();
         return $result;
     }
 }

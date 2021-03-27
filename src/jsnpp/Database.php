@@ -30,13 +30,17 @@ class Database
     {
         $dbtype = $this->app->getDb('type');
         $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
-        return $this->app->get($dbtype)->hasDb($name);
+        $re = $this->app->get($dbtype)->hasDb($name);
+        $this->disconnect();
+        return $re;
     }
     public function newDb($name)
     {
         $dbtype = $this->app->getDb('type');
         $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
-        return $this->app->get($dbtype)->newDb($name);
+        $re = $this->app->get($dbtype)->newDb($name);
+        $this->disconnect();
+        return $re;
     }
     public function disconnect()
     {
@@ -47,6 +51,7 @@ class Database
     }
     public function beginTransaction()
     {
+        $this->connectDb();
         $this->dbh->beginTransaction();
     }
     public function endTransaction()
@@ -68,6 +73,9 @@ class Database
         }
         elseif(strtolower(substr($sql, 0, 6)) == 'insert'){
             $result = $this->dbh->lastInsertId();
+        }
+        else{
+            $result = $sth->rowCount();
         }
         return $result;
     }

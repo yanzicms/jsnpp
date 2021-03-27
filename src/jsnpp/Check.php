@@ -80,6 +80,25 @@ class Check extends Connector
         }
         return $value;
     }
+    public function filter($value, $func)
+    {
+        $detr = debug_backtrace();
+        $class = str_replace('/', '\\', $detr[1]['class']);
+        $this->set('execFilter', $value, $func, $class);
+        return $this;
+    }
+    protected function execFilter($value, $func, $class)
+    {
+        if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+            $value = $this->findBoxValue($metchs[1]);
+            $this->box->set(trim($metchs[1]), $this->app->appMethodRaw($class, $func, [$value]));
+        }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
     public function session($name, $value, $condition = true)
     {
         $this->set('execSession', $name, $value, $condition);
@@ -92,6 +111,22 @@ class Check extends Connector
                 $value = $this->findBoxValue($metchs[1]);
             }
             $this->sessions->set($name, $value);
+        }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    public function removeSession($name, $condition = true)
+    {
+        $this->set('execRemoveSession', $name, $condition);
+        return $this;
+    }
+    protected function execRemoveSession($name, $condition)
+    {
+        if($condition){
+            $this->sessions->remove($name);
         }
         return [
             'result' => true,
@@ -118,6 +153,22 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    public function removeCookie($name, $condition = true)
+    {
+        $this->set('execRemoveCookie', $name, $condition);
+        return $this;
+    }
+    protected function execRemoveCookie($name, $condition)
+    {
+        if($condition){
+            $this->cookies->remove($name);
+        }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
     public function run($func, $variable = null, $symbol = null, $expression = null)
     {
         $detr = debug_backtrace();
@@ -131,7 +182,11 @@ class Check extends Connector
             $result = true;
         }
         else{
-            if(is_null($expression)){
+            if(!is_null($variable) && is_null($symbol) && is_null($expression)){
+                $expression = true;
+                $symbol = '=';
+            }
+            elseif(is_null($expression)){
                 $expression = $symbol;
                 $symbol = '=';
             }

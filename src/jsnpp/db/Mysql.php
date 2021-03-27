@@ -76,12 +76,10 @@ class Mysql
     public function newDb($name)
     {
         $result = true;
-        $this->connect(true);
         if(!$this->hasDb($name)){
             $sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '` DEFAULT CHARSET utf8 COLLATE utf8_general_ci';
             $result = $this->database->sqlRaw($sql);
         }
-        $this->disconnect();
         return $result;
     }
 }

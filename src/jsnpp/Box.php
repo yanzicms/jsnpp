@@ -52,4 +52,32 @@ class Box
         $this->box[$name] = $value;
         return $this->box[$name];
     }
+    public function has($name)
+    {
+        if(strpos($name, '.') !== false){
+            $has = true;
+            $varr = explode('.', $name);
+            $value = array_shift($varr);
+            if(isset($this->box[$value])){
+                $newvalue = $this->box[$value];
+                while(count($varr) > 0){
+                    $value = array_shift($varr);
+                    if(isset($newvalue[$value])){
+                        continue;
+                    }
+                    else{
+                        $has = false;
+                        break;
+                    }
+                }
+            }
+            else{
+                $has = false;
+            }
+            return $has;
+        }
+        else{
+            return !!isset($this->box[$name]);
+        }
+    }
 }
