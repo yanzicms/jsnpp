@@ -1,6 +1,6 @@
 # jsnpp #
 
-> **Note:** This repository contains the core code of the Jsnpp framework. If you want to build an application using Jsnpp, visit the other [Jsnpp repository](https://github.com/yanzicms/jsnpp1).
+> **Note:** This repository contains the core code of the Jsnpp framework. If you want to build an application using Jsnpp, visit the other [Jsnpp repository](https://github.com/yanzicms/jsnpp-app).
 
 Jsnpp is an open source, free, fast, lightweight, object-oriented PHP development framework, which can be easily applied to various web application development. 
 
