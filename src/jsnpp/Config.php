@@ -52,4 +52,18 @@ class Config extends Connector
             'message' => 'ok'
         ];
     }
+    public function writeRouting($name, $value = '')
+    {
+        $this->set('execWriteRouting', $name, $value);
+        return $this;
+    }
+    protected function execWriteRouting($name, $value)
+    {
+        $this->app->writeRouting($name, $value);
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
 }

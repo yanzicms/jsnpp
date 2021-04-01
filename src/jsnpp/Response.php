@@ -113,7 +113,7 @@ class Response
         $start = str_replace('{', '\{', $ostart);
         $end = str_replace('}', '\}', $oend);
         $content = file_get_contents($tplfile);
-        while(preg_match('/{include( ){1,}((\.\.\/)*[A-Za-z][A-Za-z0-9_]*(\/[A-Za-z][A-Za-z0-9_]*)*)}/i', $content, $mat)){
+        while(preg_match('/{include( ){1,}((\.\.\/)*[A-Za-z][A-Za-z0-9_\-]*(\/[A-Za-z][A-Za-z0-9_\-]*)*)}/i', $content, $mat)){
             $tplinc = dirname($tplfile) . DIRECTORY_SEPARATOR . $mat[2] . '.' . $this->app->getConfig('templatesuffix');
             if(is_file($tplinc)){
                 $incfile = file_get_contents($tplinc);
@@ -312,13 +312,12 @@ for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnp
     }
     private function ptoa($val)
     {
-        return preg_replace('/\.([A-Za-z][A-Za-z0-9_]*)/', '[\'$1\']', $val);
+        return preg_replace('/\.([A-Za-z][A-Za-z0-9_\-]*)/', '[\'$1\']', $val);
     }
     private function toeach(&$stack, $val)
     {
         foreach($stack as $skey => $sval){
-            $val = preg_replace('/\\'.$sval[1].'\./', $sval[0].'[$_jsnpp_keyarr_' . $sval[2] . '['.$sval[1].']].', $val);
-            $val = preg_replace('/\\'.$sval[1].'$/', $sval[0].'[$_jsnpp_keyarr_' . $sval[2] . '['.$sval[1].']]', $val);
+            $val = preg_replace('/\\'.$sval[1].'(\.|\W|$)/', $sval[0].'[$_jsnpp_keyarr_' . $sval[2] . '['.$sval[1].']]$1', $val);
         }
         return $val;
     }

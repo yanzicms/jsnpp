@@ -180,6 +180,7 @@ class Entrance extends Connector
                     }
                     break;
                 case 'integer':
+                case 'int':
                     if(filter_var($item, FILTER_VALIDATE_INT) === false){
                         $re = $alert;
                     }
@@ -206,6 +207,11 @@ class Entrance extends Connector
                     break;
                 case 'alphanumunder':
                     if(!preg_match('/^[A-Za-z][A-Za-z0-9\_]*$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
+                case 'alphanumhyphen':
+                    if(!preg_match('/^[A-Za-z][A-Za-z0-9\-]*$/', $item)){
                         $re = $alert;
                     }
                     break;
