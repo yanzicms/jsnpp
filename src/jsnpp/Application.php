@@ -14,7 +14,7 @@ use jsnpp\exception\FuncNotFoundException;
 
 class Application
 {
-    const VERSION = '2.2.4';
+    const VERSION = '2.4.3';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -250,15 +250,51 @@ class Application
         }
         return $instance;
     }
+    private function toHandleClassName($name)
+    {
+        $names = str_replace('/', '\\', $name);
+        $names = trim(trim(trim($names), '\\'));
+        if(substr_count($names, '\\') == 0){
+            $names = 'app\\' . trim($this->getConfig('handle')) . '\\' . $names . '\\' . ucfirst($names);
+        }
+        elseif(substr_count($names, '\\') == 1){
+            $namearr = explode('\\', $names);
+            $names = 'app\\' . trim($this->getConfig('handle')) . '\\' . lcfirst($namearr[0]) . '\\' . ucfirst($namearr[1]);
+        }
+        return $names;
+    }
+    public function handleClass($name)
+    {
+        $name = $this->toHandleClassName($name);
+        if(!Container::has($name)){
+            $instance = $this->make($name);
+        }
+        else{
+            $instance = Container::get($name);
+        }
+        return $instance;
+    }
+    public function handleMethod($class, $method, $params = [], ...$other)
+    {
+        if(is_string($class)){
+            $class = $this->toHandleClassName($class);
+        }
+        $args = $this->combine($params, $other);
+        return $this->execMethod($method, $class, $args);
+    }
     public function appMethod($class, $method, $params = [], ...$other)
     {
-        $class = $this->toAppClassName($class);
+        if(is_string($class)){
+            $class = $this->toAppClassName($class);
+        }
         $args = $this->combine($params, $other);
         return $this->execMethod($method, $class, $args);
     }
     public function appMethodRaw($class, $method, $args = [])
     {
-        $class = $this->toAppClassName($class);
+        if(is_string($class)){
+            $class = $this->toAppClassName($class);
+        }
         return $this->execMethod($method, $class, $args);
     }
     public function rootDir()

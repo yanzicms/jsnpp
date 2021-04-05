@@ -185,6 +185,11 @@ class Entrance extends Connector
                         $re = $alert;
                     }
                     break;
+                case 'positiveinteger':
+                    if(!preg_match('/^\d+$/', $item)){
+                        $re = $alert;
+                    }
+                    break;
                 case 'macaddr':
                     if(filter_var($item, FILTER_VALIDATE_MAC) === false){
                         $re = $alert;

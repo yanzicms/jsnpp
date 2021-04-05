@@ -169,7 +169,7 @@ class Response
             }
             elseif(substr($val, 0, 5) == 'each '){
                 list($eacharr, $eachi, $eachfrom, $eachto, $eachstep) = $this->breakeach($val);
-                if(strpos($eacharr, '.') !== false && count($stack) > 0){
+                if(count($stack) > 0){
                     $eacharr = $this->toeach($stack, $eacharr);
                     $eacharr = $this->ptoa($eacharr);
                 }

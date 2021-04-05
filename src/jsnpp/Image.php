@@ -63,7 +63,8 @@ class Image
         }
         $x = imagesx($im);
         $y = imagesy($im);
-        if($width == $x && $height == $y && empty($to)){
+        $position = strtolower($position);
+        if((($width == $x && $height == $y) || ($position == 'adaptraw' && $width > $x && $height > $y)) && empty($to)){
             imagedestroy($im);
         }
         else{
@@ -71,7 +72,7 @@ class Image
             $src_y = 0;
             $dst_w = $width;
             $dst_h = $height;
-            if($position == 'adapt'){
+            if($position == 'adapt' || $position == 'adaptraw'){
                 $xratio = floor($x / $width);
                 $yratio = floor($y / $height);
                 if($xratio > $yratio){
@@ -86,6 +87,16 @@ class Image
                 }
                 $dst_w = floor($dst_w);
                 $dst_h = floor($dst_h);
+                if($position == 'adaptraw' && $width > $x && $height > $y){
+                    $src_x = 0;
+                    $src_y = 0;
+                    $dst_w = $x;
+                    $dst_h = $y;
+                    $src_w = $x;
+                    $src_h = $y;
+                    $width = $x;
+                    $height = $y;
+                }
             }
             else{
                 if($width < $x){
@@ -172,6 +183,7 @@ class Image
         }
         $x = imagesx($im);
         $y = imagesy($im);
+        $position = strtolower($position);
         if(preg_match('/(\w+\/)+\w+\.\w{3,4}$/', str_replace('\\', '/', $stamp)) && is_file($stamp)){
             $sext = pathinfo($stamp, PATHINFO_EXTENSION);
             if($sext == 'png'){
