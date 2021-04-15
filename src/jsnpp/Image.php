@@ -63,6 +63,16 @@ class Image
         }
         $x = imagesx($im);
         $y = imagesy($im);
+        if($width == 0 && $height == 0){
+            $width = $x;
+            $height = $y;
+        }
+        elseif($width == 0){
+            $width = floor($x * $height / $y);
+        }
+        elseif($height == 0){
+            $height = floor($y * $width / $x);
+        }
         $position = strtolower($position);
         if((($width == $x && $height == $y) || ($position == 'adaptraw' && $width > $x && $height > $y)) && empty($to)){
             imagedestroy($im);
@@ -73,8 +83,8 @@ class Image
             $dst_w = $width;
             $dst_h = $height;
             if($position == 'adapt' || $position == 'adaptraw'){
-                $xratio = floor($x / $width);
-                $yratio = floor($y / $height);
+                $xratio = $x / $width;
+                $yratio = $y / $height;
                 if($xratio > $yratio){
                     $src_x = floor(($x - $width * $y / $height) / 2);
                     $src_w = $width * $y / $height;

@@ -61,6 +61,8 @@ class Jsnpp
         $this->app->make('errors');
         $this->request->resetRequest();
         $jsnpp = $this->judge();
+        Tools::$app = $this->app;
+        Tools::$box = $this->app->get('box');
         $this->response->resetAssign()->receive($this->app->appMethod($jsnpp['controller'], $jsnpp['method'], $jsnpp['parameter']))->output();
     }
     public function uriarr()
@@ -91,36 +93,29 @@ class Jsnpp
             $routing['method'] = 'index';
             $routing['parameter'] = [];
         }
-        elseif(count($uriarr) == 1 && $uriarr[0] == 'captcha'){
+        elseif(count($uriarr) == 1 && strtolower($uriarr[0]) == 'captcha'){
             call_user_func([$this->app->get('captcha'), 'generate']);
             exit();
         }
-        elseif(count($uriarr) == 1){
+        elseif(count($uriarr) == 1 && in_array(strtolower($uriarr[0]), Tools::arraytolower($this->app->getConfig('controller')))){
             $routing['controller'] = $uriarr[0];
             $routing['method'] = 'index';
             $routing['parameter'] = [];
         }
         else{
-            if($uriarr[0] == $this->app->getConfig('mainroute')){
-                $routing = $this->regularAnalysis($uriarr);
-            }
-            elseif(in_array($uriarr[0], $this->app->getConfig('twosegment')) && count($uriarr) == 2){
-                $routing['controller'] = 'Index';
-                if(false == $routkey = $this->istwosegment($uriarr[0])){
-                    $routing['method'] = 'fail';
-                    $routing['parameter'] = [];
-                }
-                else{
-                    $category = str_replace('\\', '/', $this->app->getRouting($routkey));
-                    $catearr = explode('/', $category);
+            $ismatch = false;
+            if(count($uriarr) == 2){
+                if(false !== $routkey = $this->istwosegment($uriarr[0])){
+                    $ismatch = true;
+                    $routing['controller'] = 'Index';
+                    $catearr = explode('/', $routkey[1]);
                     $key = trim(trim(trim($catearr[1]), '{}'));
                     if($key == 'id' && !preg_match('/^\d{1,}$/i', $uriarr[1])){
                         $routing['method'] = 'fail';
                         $routing['parameter'] = [];
                     }
                     else{
-                        $routkey = str_replace('\\', '/', $routkey);
-                        $routkeyarr = explode('/', $routkey);
+                        $routkeyarr = explode('/', $routkey[0]);
                         $routing['method'] = $routkeyarr[1];
                         $routing['parameter'] = [
                             $key => $uriarr[1]
@@ -128,26 +123,49 @@ class Jsnpp
                     }
                 }
             }
-            else{
+            if(!$ismatch){
+                $mainroute = $this->app->getConfig('mainroute');
+                $mainrouting = $this->app->getRouting('index/' . $mainroute);
+                $mainrouting = str_replace('\\', '/', $mainrouting);
+                $mainroutarr = explode('/', $mainrouting);
+                list($ismainroute, $parameter) = $this->ismainroute($uriarr, $mainroutarr);
+                if($ismainroute){
+                    $ismatch = true;
+                    $routing['controller'] = 'Index';
+                    $routing['method'] = $mainroute;
+                    $routing['parameter'] = $parameter;
+                }
+            }
+            if(!$ismatch){
                 $routing = $this->ordinaryAnalysis($uriarr);
             }
+            
         }
-        parse_str(file_get_contents('php://input'), $putarr);
+        $input = file_get_contents('php://input');
+        $putarr = [];
+        if(!empty($input)){
+            $putarr = json_decode($input, true);
+            if(is_null($putarr)){
+                parse_str($input, $putarr);
+            }
+        }
         $routing['parameter'] =array_merge($routing['parameter'], $_GET, $_POST, $putarr);
         return $routing;
     }
     private function istwosegment($str)
     {
         $strl = strlen($str) + 1;
-        $routing = $this->app->getRouting();
-        foreach($routing as $key => $val){
-            $val = str_replace('\\', '/', $val);
-            if(substr($val, 0, $strl) == $str . '/' && substr_count($val, '/') == 1){
-                return $key;
+        $twosegment = $this->app->getConfig('twosegment');
+        foreach($twosegment as $key => $val){
+            $rout = $this->app->getRouting('index/' . $val);
+            $rout = str_replace('\\', '/', $rout);
+            if(substr($rout, 0, $strl) == $str . '/' && substr_count($rout, '/') == 1){
+                return ['index/' . $val, $rout];
             }
         }
         return false;
     }
+    
     private function ordinaryAnalysis($tmparr)
     {
         $routing['controller'] = array_shift($tmparr);
@@ -168,57 +186,69 @@ class Jsnpp
         }
         return $routing;
     }
-    private function regularAnalysis($uriarr)
+    private function ismainroute($uriarr, $mainroutarr)
     {
-        $routing['controller'] = 'Index';
-        $method = empty($this->app->getConfig('mainroute')) ? 'archives' : $this->app->getConfig('mainroute');
-        $archives = str_replace('\\', '/', $this->app->getRouting('index/' . $method));
-        $archivesarr = explode('/', $archives);
-        $regularr = [];
-        foreach($archivesarr as $val){
-            $val = trim($val);
-            switch($val){
-                case '{year}':
-                    $regularr[] = '\d{4}';
-                    break;
-                case '{month}':
-                    $regularr[] = '(0?[1-9]|1[0-2])';
-                    break;
-                case '{day}':
-                    $regularr[] = '((0?[1-9])|((1|2)[0-9])|30|31)';
-                    break;
-                case '{id}':
-                    $regularr[] = '\d{1,}';
-                    break;
-                case '{name}':
-                case '{category}':
-                    $regularr[] = '[A-Za-z]([A-Za-z0-9_\-]*[A-Za-z0-9])?';
-                    break;
-                case '{author}':
-                    $regularr[] = '(_admin|_index|[A-Za-z]([A-Za-z0-9_\-]*[A-Za-z0-9])?)';
-                    break;
-                default:
-                    $regularr[] = $val;
-                    break;
-            }
-        }
-        $regular = '/^' . implode('\/', $regularr) . '$/i';
-        $routstr = implode('/', $uriarr);
-        if(!preg_match($regular, $routstr)){
-            $routing['method'] = 'fail';
-            $routing['parameter'] = [];
+        $ismatch = true;
+        $parameter = [];
+        if(count($uriarr) != count($mainroutarr)){
+            $ismatch = false;
         }
         else{
-            $routing['method'] = $method;
-            $routing['parameter'] = [];
-            foreach($archivesarr as $key => $val){
+            foreach($mainroutarr as $key => $val){
                 $val = trim($val);
                 if(substr($val, 0, 1) == '{' && substr($val, -1) == '}'){
                     $val = trim(trim($val, '{}'));
-                    $routing['parameter'][$val] = $uriarr[$key];
+                    switch($val){
+                        case 'year':
+                            $regstr = '\d{4}';
+                            break;
+                        case 'month':
+                            $regstr = '(0?[1-9]|1[0-2])';
+                            break;
+                        case 'day':
+                            $regstr = '((0?[1-9])|((1|2)[0-9])|30|31)';
+                            break;
+                        case 'id':
+                            $regstr = '\d{1,}';
+                            break;
+                        case 'name':
+                        case 'category':
+                            $regstr = '[A-Za-z]([A-Za-z0-9_\-]*[A-Za-z0-9])?';
+                            break;
+                        case 'author':
+                            $regstr = '(_admin|_index|[A-Za-z]([A-Za-z0-9_\-]*[A-Za-z0-9])?)';
+                            break;
+                        default:
+                            $regstr = '';
+                            break;
+                    }
+                    if(empty($regstr)){
+                        $ismatch = false;
+                        break;
+                    }
+                    else{
+                        $regstr = '/^' . $regstr . '$/i';
+                        if(!preg_match($regstr, $uriarr[$key])){
+                            $ismatch = false;
+                            break;
+                        }
+                        else{
+                            $parameter[$val] = $uriarr[$key];
+                        }
+                    }
+                }
+                else{
+                    if($val != $uriarr[$key]){
+                        $ismatch = false;
+                        break;
+                    }
                 }
             }
         }
-        return $routing;
+        if(!$ismatch){
+            $parameter = [];
+        }
+        return [$ismatch, $parameter];
     }
+    
 }

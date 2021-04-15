@@ -231,7 +231,7 @@ class Db extends Connector
                 if(isset($item['slice']['count'])){
                     $count = $item['slice']['count'];
                 }
-                $statement = $this->getploySelect($item['slice'], $where, $item['action'], 'total', $count);
+                $statement = $this->getploySelect($item['slice'], $where, $item['action'], 'count', $count);
                 $cache = isset($item['slice']['cache']) ? $item['slice']['cache'] : 0;
                 $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);

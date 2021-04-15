@@ -101,17 +101,92 @@ class Response
             $this->assign[$name] = $value;
         }
     }
+    public function appendAssign($name, $value = '')
+    {
+        if(is_array($name)){
+            foreach($name as $key => $val){
+                $this->append($key, $val);
+            }
+        }
+        else{
+            $this->append($name, $value);
+        }
+    }
+    private function append($name, $value)
+    {
+        if($this->hasAssign($name)){
+            $this->assign[$name] .= $value;
+        }
+        else{
+            $this->assign[$name] = $value;
+        }
+    }
+    public function hasAssign($name)
+    {
+        return isset($this->assign[$name]) ? true : false;
+    }
     public function resetAssign()
     {
         $this->assign = [];
         return $this;
     }
-    public function display($tplfile)
+    public function template($content)
     {
         $ostart = $this->app->getConfig('tagstart');
         $oend = $this->app->getConfig('tagsend');
         $start = str_replace('{', '\{', $ostart);
         $end = str_replace('}', '\}', $oend);
+        if(is_file($content)){
+            $tplfile = $content;
+            $content = $this->getcontent($content);
+            $content = $this->getcss($content, $tplfile);
+            $content = $this->getjs($content, $tplfile);
+        }
+        $compfile = md5($content);
+        $comp = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'assist' . DIRECTORY_SEPARATOR . 'comp' . DIRECTORY_SEPARATOR . $compfile . '.php';
+        if(!is_file($comp)){
+            $content = preg_replace("/\<\!\-\-[\S\s]*?\-\-\>/s", '', $content);
+            $tpl = $this->convert($content, $start, $end);
+            file_put_contents($comp, $tpl);
+        }
+        extract($this->assign);
+        ob_implicit_flush(false);
+        include $comp;
+        $html = ob_get_clean();
+        return $html;
+    }
+    private function getcss($content, $tplfile)
+    {
+        while(preg_match('/{css( ){1,}((\.\.\/)*[A-Za-z][A-Za-z0-9_\-]*(\/[A-Za-z][A-Za-z0-9_\-]*)*)}/i', $content, $mat)){
+            $tplinc = dirname($tplfile) . DIRECTORY_SEPARATOR . $mat[2] . '.css';
+            if(is_file($tplinc)){
+                $incfile = file_get_contents($tplinc);
+                $content = str_replace($mat[0], '<style>' . PHP_EOL . $incfile . PHP_EOL . '</style>', $content);
+                continue;
+            }
+            else{
+                $content = str_replace($mat[0], '', $content);
+            }
+        }
+        return $content;
+    }
+    private function getjs($content, $tplfile)
+    {
+        while(preg_match('/{js( ){1,}((\.\.\/)*[A-Za-z][A-Za-z0-9_\-]*(\/[A-Za-z][A-Za-z0-9_\-]*)*)}/i', $content, $mat)){
+            $tplinc = dirname($tplfile) . DIRECTORY_SEPARATOR . $mat[2] . '.js';
+            if(is_file($tplinc)){
+                $incfile = file_get_contents($tplinc);
+                $content = str_replace($mat[0], '<script>' . PHP_EOL . $incfile . PHP_EOL . '</script>', $content);
+                continue;
+            }
+            else{
+                $content = str_replace($mat[0], '', $content);
+            }
+        }
+        return $content;
+    }
+    private function getcontent($tplfile)
+    {
         $content = file_get_contents($tplfile);
         while(preg_match('/{include( ){1,}((\.\.\/)*[A-Za-z][A-Za-z0-9_\-]*(\/[A-Za-z][A-Za-z0-9_\-]*)*)}/i', $content, $mat)){
             $tplinc = dirname($tplfile) . DIRECTORY_SEPARATOR . $mat[2] . '.' . $this->app->getConfig('templatesuffix');
@@ -125,9 +200,19 @@ class Response
                 break;
             }
         }
+        return $content;
+    }
+    public function display($tplfile)
+    {
+        $ostart = $this->app->getConfig('tagstart');
+        $oend = $this->app->getConfig('tagsend');
+        $start = str_replace('{', '\{', $ostart);
+        $end = str_replace('}', '\}', $oend);
+        $content = $this->getcontent($tplfile);
         $compfile = md5($content);
         $comp = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'assist' . DIRECTORY_SEPARATOR . 'comp' . DIRECTORY_SEPARATOR . $compfile . '.php';
         if(!is_file($comp)){
+            $content = preg_replace("/\<\!\-\-[\S\s]*?\-\-\>/s", '', $content);
             $tpl = $this->convert($content, $start, $end);
             file_put_contents($comp, $tpl);
         }
@@ -216,7 +301,7 @@ for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnp
                     $val = $this->toeach($stack, $val);
                 }
                 $val = $this->ptoa($val);
-                $match[$key] = '<?php if(!isset(' . $val . ')) { ?>';
+                $match[$key] = '<?php if(!isset(' . $val . ') || empty(' . $val . ')) { ?>';
             }
             elseif(substr($val, 0, 9) == 'notempty '){
                 $val = substr($val, 9);
@@ -224,7 +309,7 @@ for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnp
                     $val = $this->toeach($stack, $val);
                 }
                 $val = $this->ptoa($val);
-                $match[$key] = '<?php if(isset(' . $val . ')) { ?>';
+                $match[$key] = '<?php if(isset(' . $val . ') && !empty(' . $val . ')) { ?>';
             }
             elseif($val == 'endeach'){
                 array_pop($stack);

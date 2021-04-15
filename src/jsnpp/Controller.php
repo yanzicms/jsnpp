@@ -18,11 +18,12 @@ class Controller
     protected $session;
     protected $cookie;
     protected $route;
+    protected $handle;
     protected $rootDir;
     protected $appDir;
     protected $DS;
     protected $tablePrefix;
-    public function __construct(Application $app, Request $request, View $view, Lang $lang, Box $box, Session $session, Cookie $cookie, Route $route){
+    public function __construct(Application $app, Request $request, View $view, Lang $lang, Box $box, Session $session, Cookie $cookie, Route $route, Handle $handle){
         $this->app = $app;
         $this->request = $request;
         $this->view = $view;
@@ -31,6 +32,7 @@ class Controller
         $this->session = $session;
         $this->cookie = $cookie;
         $this->route = $route;
+        $this->handle = $handle;
         $this->rootDir = $this->app->rootDir();
         $this->appDir = $this->app->appDir();
         $this->DS = DIRECTORY_SEPARATOR;

@@ -16,6 +16,42 @@ class Output extends Connector
     public function initialize(){
         $this->route = $this->app->get('route');
     }
+    public function noAssign($name, $value = '')
+    {
+        $this->set('execNoAssign', $name, $value);
+        return $this;
+    }
+    protected function execNoAssign($name, $value)
+    {
+        if(is_string($value) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+            $value = $this->findBoxValue($metchs[1]);
+        }
+        if(!$this->response->hasAssign($name)){
+            $this->response->setAssign($name, $value);
+        }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    public function appendAssign($name, $value = '')
+    {
+        $this->set('execAppendAssign', $name, $value);
+        return $this;
+    }
+    protected function execAppendAssign($name, $value)
+    {
+        if(is_string($value) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $value, $metchs)){
+            $value = $this->findBoxValue($metchs[1]);
+        }
+        $this->response->appendAssign($name, $value);
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
     public function assign($name, $value = null)
     {
         if(!is_array($name) && is_null($value)){

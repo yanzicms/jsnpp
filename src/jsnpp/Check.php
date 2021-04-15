@@ -12,11 +12,13 @@ class Check extends Connector
 {
     private $sessions;
     private $cookies;
+    private $cache;
     private $runresult = null;
     private $param = [];
     public function initialize(){
         $this->sessions = $this->app->get('session');
         $this->cookies = $this->app->get('cookie');
+        $this->cache = $this->app->get('cache');
     }
     public function stop($variable, $symbol, $expression = null, $alert = null)
     {
@@ -25,7 +27,12 @@ class Check extends Connector
     }
     protected function execStop($variable, $symbol, $expression, $alert)
     {
-        if(is_null($alert) && !in_array(trim($symbol), ['=', '!=', '>', '<', '>=', '<='])){
+        if(is_null($expression) && is_null($alert)){
+            $alert = $symbol;
+            $expression = true;
+            $symbol = '=';
+        }
+        elseif(is_null($alert) && !in_array(trim($symbol), ['=', '!=', '>', '<', '>=', '<='])){
             $alert = $expression;
             $expression = $symbol;
             $symbol = '=';
@@ -218,6 +225,48 @@ class Check extends Connector
             $this->box->set(trim($name), $this->runresult);
             $this->runresult = null;
         }
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    public function deleteCache($name)
+    {
+        $this->set('execDeleteCache', $name);
+        return $this;
+    }
+    protected function execDeleteCache($name)
+    {
+        $this->cache->delete($name);
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    public function deleteCacheTag($name)
+    {
+        $this->set('execDeleteCacheTag', $name);
+        return $this;
+    }
+    protected function execDeleteCacheTag($name)
+    {
+        $this->cache->deleteTag($name);
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    public function clearCache()
+    {
+        $this->set('execClearCache');
+        return $this;
+    }
+    protected function execClearCache()
+    {
+        $this->cache->clear();
         return [
             'result' => true,
             'code' => 0,
