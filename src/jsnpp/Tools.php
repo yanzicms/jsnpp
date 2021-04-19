@@ -13,7 +13,6 @@ class Tools
     public static $url;
     public static $lang;
     public static $app;
-    public static $box;
     public static function dirName($path, $levels = 1)
     {
         while($levels > 0){

@@ -62,7 +62,6 @@ class Jsnpp
         $this->request->resetRequest();
         $jsnpp = $this->judge();
         Tools::$app = $this->app;
-        Tools::$box = $this->app->get('box');
         $this->response->resetAssign()->receive($this->app->appMethod($jsnpp['controller'], $jsnpp['method'], $jsnpp['parameter']))->output();
     }
     public function uriarr()
