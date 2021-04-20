@@ -14,7 +14,7 @@ use jsnpp\exception\FuncNotFoundException;
 
 class Application
 {
-    const VERSION = '3.6.5';
+    const VERSION = '3.6.8';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -90,6 +90,10 @@ class Application
         }
         return $reflect->newInstanceArgs($arguments);
     }
+    private function isClassParam($param)
+    {
+        return $param->getType() && !$param->getType()->isBuiltin();
+    }
     private function getParams($constructor, $args = [])
     {
         $arguments = [];
@@ -98,10 +102,10 @@ class Application
         $parcount = 0;
         $noclass = 0;
         foreach($params as $param){
-            if(!$param->isDefaultValueAvailable() && is_null($param->getClass())){
+            if(!$param->isDefaultValueAvailable() && !$this->isClassParam($param)){
                 $parcount ++;
             }
-            if(is_null($param->getClass())){
+            if(!$this->isClassParam($param)){
                 $noclass ++;
             }
         }
@@ -112,8 +116,8 @@ class Application
         else{
             foreach($params as $param){
                 $name = $param->getName();
-                if(!is_null($param->getClass())){
-                    $arguments[] = $this->getClassParam($param->getClass()->getName(), $args, $noclass);
+                if($this->isClassParam($param)){
+                    $arguments[] = $this->getClassParam($param->getType()->getName(), $args, $noclass);
                 }
                 elseif($isIndex){
                     $arguments[] = array_shift($args);

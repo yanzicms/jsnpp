@@ -83,11 +83,15 @@ class Jsnpp
         }
         return $uriarr;
     }
+    private function isempty($uriarr)
+    {
+        return empty($uriarr) || (is_array($uriarr) && count($uriarr) == 1 && empty($uriarr[0]));
+    }
     public function judge()
     {
         $routing = [];
         $uriarr = $this->uriarr();
-        if(empty($uriarr)){
+        if($this->isempty($uriarr)){
             $routing['controller'] = 'Index';
             $routing['method'] = 'index';
             $routing['parameter'] = [];

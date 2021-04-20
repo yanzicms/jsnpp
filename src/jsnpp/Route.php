@@ -65,7 +65,16 @@ class Route
         if($consider && strpos($this->request->requestUri(), '/index.php/') !== false){
             $subroot .= '/index.php';
         }
-        return '/' . $subroot . '/';
+        if(empty($subroot)){
+            $subroot = '/';
+        }
+        elseif($subroot == '/index.php'){
+            $subroot .= '/';
+        }
+        else{
+            $subroot = '/' . $subroot . '/';
+        }
+        return $subroot;
     }
     public function redirect($name, $arr = [])
     {
