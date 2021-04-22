@@ -210,10 +210,14 @@ class Response
         $end = str_replace('}', '\}', $oend);
         $content = $this->getcontent($tplfile);
         $compfile = md5($content);
-        $comp = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'assist' . DIRECTORY_SEPARATOR . 'comp' . DIRECTORY_SEPARATOR . $compfile . '.php';
+        $compPath = $this->app->rootDir() . DIRECTORY_SEPARATOR . 'assist' . DIRECTORY_SEPARATOR . 'comp';
+        $comp = $compPath . DIRECTORY_SEPARATOR . $compfile . '.php';
         if(!is_file($comp)){
             $content = preg_replace("/\<\!\-\-[\S\s]*?\-\-\>/s", '', $content);
             $tpl = $this->convert($content, $start, $end);
+            if(!is_dir($compPath)){
+                @mkdir($compPath, 0777, true);
+            }
             file_put_contents($comp, $tpl);
         }
         $this->outheader();
