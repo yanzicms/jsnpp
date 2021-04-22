@@ -47,6 +47,9 @@ class Route
                 $url .= empty($surl) ? $name . $suffix : $name . '/' . $surl . $suffix;
             }
         }
+        if(substr($url, -11) == '/index.php/'){
+            $url = substr($url, 0, -10);
+        }
         return $url;
     }
     private function getpurl($arr)
@@ -62,7 +65,7 @@ class Route
         $siteroot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']), '/');
         $webroot = rtrim(str_replace('\\', '/', $this->app->rootDir()), '/');
         $subroot = trim(substr($webroot, strlen($siteroot)), '/');
-        if($consider && strpos($this->request->requestUri(), '/index.php/') !== false){
+        if($consider && ($this->app->getConfig('rewrite') == false || strpos($this->request->requestUri(), '/index.php/') !== false)){
             $subroot .= '/index.php';
         }
         if(empty($subroot)){
