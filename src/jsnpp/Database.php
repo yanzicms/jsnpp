@@ -42,6 +42,21 @@ class Database
         $this->disconnect();
         return $re;
     }
+    
+    public function newTable($tableName, $tableArray)
+    {
+        $dbtype = $this->app->getDb('type');
+        $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
+        $re = $this->app->get($dbtype)->newTable($tableName, $tableArray);
+        return $re;
+    }
+    public function deleteTable($tableName)
+    {
+        $dbtype = $this->app->getDb('type');
+        $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
+        $re = $this->app->get($dbtype)->deleteTable($tableName);
+        return $re;
+    }
     public function disconnect()
     {
         $dbtype = $this->app->getDb('type');

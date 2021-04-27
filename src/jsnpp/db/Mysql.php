@@ -82,4 +82,60 @@ class Mysql
         }
         return $result;
     }
+    public function newTable($tableName, $tableArray)
+    {
+        $sql = '';
+        $indexs = '';
+        foreach($tableArray as $item){
+            $index = '';
+            if(strtoupper($item['type']) == 'AUTO'){
+                $field = '`' . $item['name'] . '` int(11) unsigned NOT NULL AUTO_INCREMENT';
+                $index = 'PRIMARY KEY (`' . $item['name'] . '`)';
+            }
+            else{
+                $field = '`' . $item['name'] . '` ' . $item['type'];
+                if(isset($item['length'])){
+                    $field .= '(' . $item['length'] . ')';
+                }
+                if(isset($item['notnull']) && $item['notnull']){
+                    $field .= ' NOT NULL';
+                }
+                if(isset($item['default'])){
+                    if(is_numeric($item['default'])){
+                        $field .= ' DEFAULT ' . $item['default'];
+                    }
+                    else{
+                        $field .= ' DEFAULT \'' . $item['default'] . '\'';
+                    }
+                }
+                if(isset($item['index'])){
+                    $index = 'KEY `' . $item['index'] . '` (`' . $item['name'] . '`)';
+                }
+            }
+            $sql .= $field . ',';
+            if(!empty($index)){
+                $indexs .= $index . ',';
+            }
+        }
+        $sql .= $indexs;
+        $sql = 'CREATE TABLE `' . $this->app->getDb('prefix') . $tableName . '` (' . rtrim($sql, ',') . ');';
+        try{
+            $this->database->sql($sql);
+            return true;
+        }
+        catch(\Exception $e){
+            return $e->getMessage();
+        }
+    }
+    public function deleteTable($tableName)
+    {
+        $sql = 'DROP TABLE ' . $this->app->getDb('prefix') . $tableName;
+        try{
+            $this->database->sql($sql);
+            return true;
+        }
+        catch(\Exception $e){
+            return $e->getMessage();
+        }
+    }
 }
