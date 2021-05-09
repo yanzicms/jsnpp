@@ -85,6 +85,12 @@ class Sqlite
             if(strtoupper($item['type']) == 'AUTO'){
                 $field = $item['name'] . ' INTEGER PRIMARY KEY AUTOINCREMENT';
             }
+            elseif(strtoupper($item['type']) == 'UINT'){
+                $field = $item['name'] . ' INT NOT NULL DEFAULT 0';
+                if(isset($item['index'])){
+                    $index = 'CREATE INDEX ' . $item['name'] . '_' . $item['index'] . ' ON ' . $this->app->getDb('prefix') . $tableName . ' (' . $item['name'] . ');';
+                }
+            }
             else{
                 $field = $item['name'] . ' ' . $item['type'];
                 if(isset($item['length'])){

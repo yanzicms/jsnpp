@@ -92,6 +92,12 @@ class Mysql
                 $field = '`' . $item['name'] . '` int(11) unsigned NOT NULL AUTO_INCREMENT';
                 $index = 'PRIMARY KEY (`' . $item['name'] . '`)';
             }
+            elseif(strtoupper($item['type']) == 'UINT'){
+                $field = '`' . $item['name'] . '` int(11) unsigned DEFAULT 0';
+                if(isset($item['index'])){
+                    $index = 'KEY `' . $item['index'] . '` (`' . $item['name'] . '`)';
+                }
+            }
             else{
                 $field = '`' . $item['name'] . '` ' . $item['type'];
                 if(isset($item['length'])){

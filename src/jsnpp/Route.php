@@ -19,7 +19,7 @@ class Route
         $this->app = $app;
         $this->request = $request;
     }
-    public function url($name, $arr = [])
+    public function url($name, $arr = [], $full = false)
     {
         $name = trim($name);
         $route = $this->app->getRouting($name);
@@ -49,6 +49,10 @@ class Route
         }
         if(substr($url, -11) == '/index.php/'){
             $url = substr($url, 0, -10);
+        }
+        if($full){
+            $domain = $this->domain();
+            $url = rtrim($domain, '/') . $url;
         }
         return $url;
     }
@@ -92,5 +96,9 @@ class Route
     public function rootUrlFull()
     {
         return ($this->request->isHttps() ? 'https://' : 'http://') . $this->request->host() . $this->base(false);
+    }
+    public function domain()
+    {
+        return ($this->request->isHttps() ? 'https://' : 'http://') . $this->request->host();
     }
 }

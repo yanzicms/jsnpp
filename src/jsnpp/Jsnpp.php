@@ -100,6 +100,11 @@ class Jsnpp
             call_user_func([$this->app->get('captcha'), 'generate']);
             exit();
         }
+        elseif(count($uriarr) == 1 && in_array(strtolower($uriarr[0]), Tools::arraytolower($this->app->getConfig('alone')))){
+            $routing['controller'] = 'index';
+            $routing['method'] = $uriarr[0];
+            $routing['parameter'] = [];
+        }
         elseif(count($uriarr) == 1 && in_array(strtolower($uriarr[0]), Tools::arraytolower($this->app->getConfig('controller')))){
             $routing['controller'] = $uriarr[0];
             $routing['method'] = 'index';
