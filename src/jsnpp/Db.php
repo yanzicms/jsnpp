@@ -1006,7 +1006,7 @@ class Db extends Connector
                 $statstr = '';
                 $starrlen = count($starr) - 1;
                 for($i = 0; $i < $starrlen; $i ++){
-                    if(in_array($i, $isbox)){
+                    if(in_array($i, $isbox[1])){
                         $statstr .= $starr[$i] . $judgment[$i];
                         unset($judgment[$i]);
                     }
@@ -1032,26 +1032,51 @@ class Db extends Connector
             }
             $judgment = strtoupper(Tools::oneSpace($judgment));
             if($judgment == 'BETWEEN' || $judgment == 'NOT BETWEEN'){
-                if((is_array($condition) && count($condition) != 2) || (is_string($condition) && (strpos($condition, ',') === false || substr_count($condition, ',') != 1))){
+                if((is_array($condition) && count($condition) != 2) || (is_string($condition) && substr(trim($condition), 0, 5) != ':box(' && (strpos($condition, ',') === false || substr_count($condition, ',') != 1))){
                     throw new DbSyntaxException('Database syntax error: BETWEEN requires two parameters');
                 }
                 if(is_string($condition)){
-                    $condition = Tools::toArrTrim($condition, ',');
+                    $this->boxs = array_merge($this->boxs, $this->box->get());
+                    if(false !== $isbox = $this->isBoxStr($condition)){
+                        $condition = $this->findValue($isbox[2]);
+                    }
+                    else{
+                        $condition = Tools::toArrTrim($condition, ',');
+                        foreach($condition as $ckey => $cval){
+                            if(false !== $cisbox = $this->isBoxStr($cval)){
+                                $condition[$ckey] = $this->findValue($cisbox[2]);
+                            }
+                        }
+                    }
                 }
-                elseif(!is_array($condition)){
-                    $condition = [$condition];
+                if(is_array($condition) && count($condition) != 2){
+                    throw new DbSyntaxException('Database syntax error: BETWEEN requires two parameters');
+                }
+                if(!is_array($condition)){
+                    $condition = [$condition, $condition];
                 }
                 $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' ? AND ?'];
                 $this->slice['whereParam'][] = $condition;
             }
             elseif($judgment == 'IN' || $judgment == 'NOT IN'){
                 if(false !== $isbox = $this->isBoxStr($condition)){
+                    $this->boxs = array_merge($this->boxs, $this->box->get());
                     if(is_array($condition)){
                         $qstr = '';
                         $incondit = [];
                         foreach($condition as $key => $val){
-                            if(in_array($key, $isbox)){
-                                $qstr .= empty($qstr) ? $val : ',' . $val;
+                            if(in_array($key, $isbox[1])){
+                                $recond = $this->findValue($isbox[2][$key]);
+                                if(is_array($recond)){
+                                    foreach($recond as $rkey => $rval){
+                                        $qstr .= empty($qstr) ? '?' : ',?';
+                                        $incondit[] = $rval;
+                                    }
+                                }
+                                else{
+                                    $qstr .= empty($qstr) ? '?' : ',?';
+                                    $incondit[] = $recond;
+                                }
                             }
                             else{
                                 $qstr .= empty($qstr) ? '?' : ',?';
@@ -1064,7 +1089,23 @@ class Db extends Connector
                         }
                     }
                     else{
-                        $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' ' . $condition];
+                        $qstr = '';
+                        $incondit = [];
+                        $recond = $this->findValue($isbox[2]);
+                        if(is_array($recond)){
+                            foreach($recond as $key => $val){
+                                $qstr .= empty($qstr) ? '?' : ',?';
+                                $incondit[] = $val;
+                            }
+                        }
+                        else{
+                            $qstr = '?';
+                            $incondit[] = $recond;
+                        }
+                        $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' (' . $qstr . ')'];
+                        if(count($incondit) > 0){
+                            $this->slice['whereParam'][] = $incondit;
+                        }
                     }
                 }
                 else{
@@ -1089,21 +1130,29 @@ class Db extends Connector
         $re = false;
         if(is_array($str)){
             $keys = [];
+            $boxname = [];
             foreach($str as $key => $val){
                 $val = trim($val);
-                if(preg_match('/^:box *\( *[A-Za-z][A-Za-z0-9_]* *\)$/i', $val)){
+                if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $val, $metchs)){
                     $keys[] = $key;
+                    $boxname[$key] = $metchs[1];
                 }
             }
             if(count($keys) > 0){
-                $re = $keys;
+                $re = true;
             }
         }
         else{
+            $keys = '';
+            $boxname = '';
             $str = trim($str);
-            if(preg_match('/^:box *\( *[A-Za-z][A-Za-z0-9_]* *\)$/i', $str)){
+            if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $str, $metchs)){
                 $re = true;
+                $boxname = $metchs[1];
             }
+        }
+        if($re){
+            return [$re, $keys, $boxname];
         }
         return $re;
     }

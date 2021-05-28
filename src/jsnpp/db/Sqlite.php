@@ -9,6 +9,7 @@
 namespace jsnpp\db;
 
 use jsnpp\Application;
+use jsnpp\Database;
 use PDO;
 use jsnpp\exception\PDOExecutionException;
 
@@ -16,9 +17,11 @@ class Sqlite
 {
     protected $app;
     protected $dbh;
+    protected $database;
     private $sqlitePath;
-    public function __construct(Application $app){
+    public function __construct(Application $app, Database $database){
         $this->app = $app;
+        $this->database = $database;
         $this->sqlitePath = $this->app->appDir() . DIRECTORY_SEPARATOR . 'sqlite';
     }
     private function dsn($dbname = '')
