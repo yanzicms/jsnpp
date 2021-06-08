@@ -124,7 +124,7 @@ class Mysql
             }
         }
         $sql .= $indexs;
-        $sql = 'CREATE TABLE `' . $this->app->getDb('prefix') . $tableName . '` (' . rtrim($sql, ',') . ');';
+        $sql = 'CREATE TABLE `' . $this->app->getDb('prefix') . $tableName . '` (' . rtrim($sql, ',') . ') ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
         try{
             $this->database->sql($sql);
             return true;
