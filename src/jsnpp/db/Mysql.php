@@ -25,20 +25,21 @@ class Mysql
     private function dsn($raw = false)
     {
         $port = $this->app->getDb('hostport');
+        $charset = $this->app->getDb('charset');
         if($raw){
             if($port != 3306){
-                return 'mysql:host=' . $this->app->getDb('hostname') . ';port=' . $port . ';charset=utf8';
+                return 'mysql:host=' . $this->app->getDb('hostname') . ';port=' . $port . ';charset=' . $charset;
             }
             else{
-                return 'mysql:host=' . $this->app->getDb('hostname') . ';charset=utf8';
+                return 'mysql:host=' . $this->app->getDb('hostname') . ';charset=' . $charset;
             }
         }
         else{
             if($port != 3306){
-                return 'mysql:host=' . $this->app->getDb('hostname') . ';port=' . $port . ';dbname=' . $this->app->getDb('database') . ';charset=utf8';
+                return 'mysql:host=' . $this->app->getDb('hostname') . ';port=' . $port . ';dbname=' . $this->app->getDb('database') . ';charset=' . $charset;
             }
             else{
-                return 'mysql:host=' . $this->app->getDb('hostname') . ';dbname=' . $this->app->getDb('database') . ';charset=utf8';
+                return 'mysql:host=' . $this->app->getDb('hostname') . ';dbname=' . $this->app->getDb('database') . ';charset=' . $charset;
             }
         }
     }
@@ -77,12 +78,13 @@ class Mysql
     {
         $result = true;
         if(!$this->hasDb($name)){
-            $sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '` DEFAULT CHARSET utf8 COLLATE utf8_general_ci';
+            $charset = $this->app->getDb('charset');
+            $sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '` DEFAULT CHARSET ' . $charset . ' COLLATE ' . $charset . '_general_ci';
             $result = $this->database->sqlRaw($sql);
         }
         return $result;
     }
-    public function newTable($tableName, $tableArray)
+    public function newTable($tableName, $tableArray, $charset = null)
     {
         $sql = '';
         $indexs = '';
@@ -124,7 +126,10 @@ class Mysql
             }
         }
         $sql .= $indexs;
-        $sql = 'CREATE TABLE `' . $this->app->getDb('prefix') . $tableName . '` (' . rtrim($sql, ',') . ') ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
+        if(is_null($charset)){
+            $charset = $this->app->getDb('charset');
+        }
+        $sql = 'CREATE TABLE `' . $this->app->getDb('prefix') . $tableName . '` (' . rtrim($sql, ',') . ') ENGINE=InnoDB  DEFAULT CHARSET=' . $charset . ' AUTO_INCREMENT=1 ;';
         try{
             $this->database->sql($sql);
             return true;

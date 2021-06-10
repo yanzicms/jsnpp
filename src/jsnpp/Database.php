@@ -42,14 +42,26 @@ class Database
         $this->disconnect();
         return $re;
     }
+    /**
+     * 新建表
+     * @param  string  $tableName
+     * @param  array  $tableArray
+     * @param  string|null  $charset
+     * @return bool
+     */
     
-    public function newTable($tableName, $tableArray)
+    public function newTable($tableName, $tableArray, $charset = null)
     {
         $dbtype = $this->app->getDb('type');
         $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
-        $re = $this->app->get($dbtype)->newTable($tableName, $tableArray);
+        $re = $this->app->get($dbtype)->newTable($tableName, $tableArray, $charset);
         return $re;
     }
+    /**
+     * 删除表
+     * @param  string  $tableName
+     * @return bool
+     */
     public function deleteTable($tableName)
     {
         $dbtype = $this->app->getDb('type');

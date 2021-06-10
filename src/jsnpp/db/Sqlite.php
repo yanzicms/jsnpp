@@ -79,7 +79,7 @@ class Sqlite
         }
         return $result;
     }
-    public function newTable($tableName, $tableArray)
+    public function newTable($tableName, $tableArray, $charset = null)
     {
         $sql = '';
         $indexs = [];
