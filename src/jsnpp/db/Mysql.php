@@ -149,4 +149,48 @@ class Mysql
             return $e->getMessage();
         }
     }
+    public function getTables($dbName)
+    {
+        $prefix = $this->app->getDb('prefix');
+        $prefix = str_replace('_', '\_', $prefix);
+        $sql = "SHOW TABLES FROM {$dbName} LIKE '{$prefix}%'";
+        try{
+            $rearr = [];
+            $re = $this->database->sql($sql);
+            foreach($re as $key => $val){
+                reset($val);
+                $rearr[] = current($val);
+            }
+            return $rearr;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
+    public function getFields($tableName)
+    {
+        $sql = 'SHOW COLUMNS FROM `'.$tableName.'`';
+        try{
+            $rearr = [];
+            $re = $this->database->sql($sql);
+            foreach($re as $val){
+                $rearr[] = $val['Field'];
+            }
+            return $rearr;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
+    public function clearTable($tableName)
+    {
+        $sql = 'TRUNCATE TABLE `'.$tableName.'`';
+        try{
+            $this->database->sql($sql);
+            return true;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
 }

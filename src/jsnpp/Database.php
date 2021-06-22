@@ -42,6 +42,7 @@ class Database
         $this->disconnect();
         return $re;
     }
+    
     /**
      * 新建表
      * @param  string  $tableName
@@ -49,7 +50,6 @@ class Database
      * @param  string|null  $charset
      * @return bool
      */
-    
     public function newTable($tableName, $tableArray, $charset = null)
     {
         $dbtype = $this->app->getDb('type');
@@ -95,7 +95,7 @@ class Database
         $this->connectDb();
         $sth = $this->dbh->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $result = $sth->execute($data);
-        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select'){
+        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select' || strtolower(substr($sql, 0, 6)) == 'pragma'){
             $result = $sth->fetchAll(PDO::FETCH_ASSOC);
         }
         elseif(strtolower(substr($sql, 0, 6)) == 'insert'){
@@ -112,9 +112,45 @@ class Database
         $this->connectDb(true);
         $sth = $this->dbh->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $result = $sth->execute($data);
-        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select'){
+        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select' || strtolower(substr($sql, 0, 6)) == 'pragma'){
             $result = $sth->fetchAll(PDO::FETCH_ASSOC);
         }
         return $result;
+    }
+    /**
+     * 获取表
+     * @param  string  $dbName
+     * @return array
+     */
+    public function getTables($dbName)
+    {
+        $dbtype = $this->app->getDb('type');
+        $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
+        $re = $this->app->get($dbtype)->getTables($dbName);
+        return $re;
+    }
+    /**
+     * 获取字段
+     * @param  string  $tableName
+     * @return array
+     */
+    public function getFields($tableName)
+    {
+        $dbtype = $this->app->getDb('type');
+        $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
+        $re = $this->app->get($dbtype)->getFields($tableName);
+        return $re;
+    }
+    /**
+     * 清除表记录
+     * @param  string  $tableName
+     * @return bool
+     */
+    public function clearTable($tableName)
+    {
+        $dbtype = $this->app->getDb('type');
+        $dbtype = 'jsnpp\db\\' . ucfirst(strtolower(trim($dbtype)));
+        $re = $this->app->get($dbtype)->clearTable($tableName);
+        return $re;
     }
 }

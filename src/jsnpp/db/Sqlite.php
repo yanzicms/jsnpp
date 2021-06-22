@@ -142,4 +142,52 @@ class Sqlite
             return $e->getMessage();
         }
     }
+    public function getTables($dbName = null)
+    {
+        $prefix = $this->app->getDb('prefix');
+        $prefix = str_replace('_', '\_', $prefix);
+        $sql = "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '{$prefix}%' ESCAPE '\' ORDER BY name";
+        try{
+            $rearr = [];
+            $re = $this->database->sql($sql);
+            foreach($re as $key => $val){
+                reset($val);
+                $rearr[] = current($val);
+            }
+            return $rearr;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
+    public function getFields($tableName)
+    {
+        $sql = 'PRAGMA table_info(' . $tableName . ')';
+        try{
+            $rearr = [];
+            $re = $this->database->sql($sql);
+            foreach($re as $val){
+                $rearr[] = $val['name'];
+            }
+            return $rearr;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
+    public function clearTable($tableName)
+    {
+        $sql = 'DELETE FROM ' . $tableName;
+        try{
+            $this->database->sql($sql);
+            $sql = "UPDATE sqlite_sequence SET seq = 0 WHERE name = '{$tableName}'";
+            $this->database->sql($sql);
+            $sql = 'VACUUM';
+            $this->database->sql($sql);
+            return true;
+        }
+        catch(\Exception $e){
+            throw new PDOExecutionException('Database execution error: ' . $e->getMessage(), $e);
+        }
+    }
 }
