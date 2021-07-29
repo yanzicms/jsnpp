@@ -81,7 +81,7 @@ class Output extends Connector
             'message' => 'ok'
         ];
     }
-    public function display($tplfile = '')
+    public function display($tplfile = '', $append = [])
     {
         if(empty($tplfile)){
             $detr = debug_backtrace();
@@ -90,18 +90,27 @@ class Output extends Connector
             $method = $detr[1]['function'];
             $tplfile = $this->app->appDir() . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR . $class .DIRECTORY_SEPARATOR . $method . '.' . $this->app->getConfig('templatesuffix');
         }
-        $this->set('execDisplay', $tplfile);
+        $this->set('execDisplay', $tplfile, $append);
         return $this;
     }
-    protected function execDisplay($tplfile)
+    protected function execDisplay($tplfile, $append)
     {
         if(is_string($tplfile) && $tplfile == ':ok'){
-            $this->response->receive([
+            $rearr = [
                 'result' => 'ok',
                 'code' => 0,
                 'message' => '',
                 'list' => []
-            ])->output();
+            ];
+            if(is_array($append) && count($append) > 0){
+                foreach($append as $key => $val){
+                    if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $val, $metchs)){
+                        $append[$key] = $this->findBoxValue($metchs[1]);
+                    }
+                }
+                $rearr = array_merge($rearr, $append);
+            }
+            $this->response->receive($rearr)->output();
             exit();
         }
         elseif(is_string($tplfile) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $tplfile, $metchs)){
