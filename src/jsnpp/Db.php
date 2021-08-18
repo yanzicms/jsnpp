@@ -495,7 +495,24 @@ class Db extends Connector
                                 $countstatement = $dbexec['countstatement'];
                                 $countstatementbind = $dbexec['bind'];
                                 list($countstatement, $countstatementbind) = $this->dealstatement($countstatement, $countstatementbind);
-                                $recount = $this->database->sql($countstatement, $countstatementbind);
+                                if($total == -2){
+                                    $countsymbol = md5(serialize([$countstatement, $countstatementbind]));
+                                    if($this->cache->has($countsymbol)){
+                                        $recount = $this->cache->get($countsymbol);
+                                    }
+                                    else{
+                                        $recount = $this->database->sql($countstatement, $countstatementbind);
+                                        if(!empty($dbexec['paging']['tag'])){
+                                            $this->cache->tag($dbexec['paging']['tag'])->set($countsymbol, $recount, 600);
+                                        }
+                                        else{
+                                            $this->cache->set($countsymbol, $recount, 600);
+                                        }
+                                    }
+                                }
+                                else{
+                                    $recount = $this->database->sql($countstatement, $countstatementbind);
+                                }
                                 $total = $recount[0]['total'];
                             }
                             $page = $this->currentpage();
@@ -909,21 +926,36 @@ class Db extends Connector
         $this->slice['box'] = $name;
         return $this->reok();
     }
-    public function paging($per, $param = [], $total = -1)
+    public function paging($per, $param = [], $total = null)
     {
         $this->set('execPaging', $per, $param, $total);
         return $this;
     }
     protected function execPaging($per, $param, $total)
     {
-        if(is_null($total) && !is_array($param) && ctype_digit(strval($param))){
+        if(is_null($total) && !is_array($param) && (ctype_digit(strval($param)) || is_bool($param) || is_string($param))){
             $total = $param;
             $param = [];
+        }
+        $tag = '';
+        if(is_null($total)){
+            $total = -1;
+        }
+        elseif(is_bool($total) && $total === true){
+            $total = -2;
+        }
+        elseif(is_bool($total) && $total === false){
+            $total = -1;
+        }
+        elseif(is_string($total) && !empty($total)){
+            $tag = $total;
+            $total = -2;
         }
         $this->slice['paging'] = [
             'per' => intval($per),
             'param' => $param,
             'total' => $total,
+            'tag' => $tag
         ];
         return $this->reok();
     }
