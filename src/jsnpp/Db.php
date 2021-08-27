@@ -62,6 +62,7 @@ class Db extends Connector
                 $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -69,7 +70,8 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $varr,
                     'removecache' => $removeCache,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'update'){
@@ -100,6 +102,7 @@ class Db extends Connector
                 $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -107,7 +110,8 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $varr,
                     'removecache' => $removeCache,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'delete'){
@@ -123,6 +127,7 @@ class Db extends Connector
                 $removeCache = isset($item['slice']['removeCache']) ? $item['slice']['removeCache'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -130,7 +135,8 @@ class Db extends Connector
                     'statement' => $statement,
                     'bind' => $whereArr,
                     'removecache' => $removeCache,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'select'){
@@ -153,6 +159,7 @@ class Db extends Connector
                 $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $paging = [];
                 $countstatement = '';
                 if(isset($item['slice']['paging'])){
@@ -169,7 +176,8 @@ class Db extends Connector
                     'cache' => $cache,
                     'cachetag' => $cacheTag,
                     'paging' => $paging,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'subquery'){
@@ -207,6 +215,7 @@ class Db extends Connector
                 $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -215,7 +224,8 @@ class Db extends Connector
                     'bind' => $whereArr,
                     'cache' => $cache,
                     'cachetag' => $cacheTag,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'count'){
@@ -236,6 +246,7 @@ class Db extends Connector
                 $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -244,7 +255,8 @@ class Db extends Connector
                     'bind' => $whereArr,
                     'cache' => $cache,
                     'cachetag' => $cacheTag,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'max' || $item['action'] == 'min' || $item['action'] == 'avg' || $item['action'] == 'sum'){
@@ -261,6 +273,7 @@ class Db extends Connector
                 $cacheTag = isset($item['slice']['cacheTag']) ? $item['slice']['cacheTag'] : '';
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
+                $dump = isset($item['slice']['dump']) ? $item['slice']['dump'] : null;
                 $this->execcode[] = [
                     'sign' => $item['sign'],
                     'action' => $item['action'],
@@ -269,7 +282,8 @@ class Db extends Connector
                     'bind' => $whereArr,
                     'cache' => $cache,
                     'cachetag' => $cacheTag,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'join'){
@@ -288,6 +302,7 @@ class Db extends Connector
                 $tmpon = '';
                 $tmpname = '';
                 $tmptablename = '';
+                $dump = null;
                 foreach($item['slice'] as $joinItem){
                     $whereParam = isset($joinItem['slice']['whereParam']) ? $joinItem['slice']['whereParam'] : [];
                     $prefix = isset($joinItem['slice']['alias']) ? $joinItem['slice']['alias'] : $joinItem['slice']['table'];
@@ -352,6 +367,9 @@ class Db extends Connector
                     if(isset($joinItem['slice']['paging'])){
                         $pagingAll = $joinItem['slice']['paging'];
                     }
+                    if(isset($joinItem['slice']['dump'])){
+                        $dump = $joinItem['slice']['dump'];
+                    }
                 }
                 $ispaging = count($pagingAll) > 0 ? true : false;
                 $countstatement = '';
@@ -408,7 +426,8 @@ class Db extends Connector
                     'cache' => $cacheAll,
                     'cachetag' => $cacheTagAll,
                     'paging' => $pagingAll,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
             elseif($item['action'] == 'union'){
@@ -416,6 +435,7 @@ class Db extends Connector
                 $unioncache = 0;
                 $unioncacheTag = '';
                 $whereArrAll = [];
+                $dump = null;
                 foreach($item['slice'] as $unionItem){
                     $whereParam = isset($unionItem['slice']['whereParam']) ? $unionItem['slice']['whereParam'] : [];
                     if(isset($unionItem['slice']['where'])){
@@ -439,6 +459,9 @@ class Db extends Connector
                     if(isset($unionItem['slice']['cacheTag'])){
                         $unioncacheTag = $unionItem['slice']['cacheTag'];
                     }
+                    if(isset($unionItem['slice']['dump'])){
+                        $dump = $unionItem['slice']['dump'];
+                    }
                 }
                 $transaction = $this->getTransaction($item['sign']);
                 $box = $this->getBox($item['slice']);
@@ -450,7 +473,8 @@ class Db extends Connector
                     'bind' => $whereArrAll,
                     'cache' => $unioncache,
                     'cachetag' => $unioncacheTag,
-                    'box' => $box
+                    'box' => $box,
+                    'dump' => $dump
                 ];
             }
         }
@@ -477,6 +501,12 @@ class Db extends Connector
                 $statementbind = $dbexec['bind'];
                 list($statement, $statementbind) = $this->dealstatement($statement, $statementbind);
                 if(!preg_match('/\s+in\s+\(\)/i', preg_replace('/(".*?")|(\'.*?\')/', '', $statement))){
+                    if(!is_null($dbexec['dump'])){
+                        dump($this->fullstatement($statement, $statementbind));
+                        if($dbexec['dump'] !== true){
+                            exit();
+                        }
+                    }
                     $hascache = false;
                     $symbol = '';
                     $result = '';
@@ -579,6 +609,20 @@ class Db extends Connector
             }
             throw new PDOExecutionException('Database execution error: ' . $e->getMessage());
         }
+    }
+    private function fullstatement($statement, $statementbind)
+    {
+        $sarr = explode('?', $statement);
+        $restr = array_shift($sarr);
+        while(count($sarr) > 0){
+            $val = array_shift($statementbind);
+            if(!is_numeric($val)){
+                $val = '\'' . $val . '\'';
+            }
+            $restr .= $val;
+            $restr .= array_shift($sarr);
+        }
+        return $restr;
     }
     private function dobind(&$bind)
     {
@@ -891,6 +935,16 @@ class Db extends Connector
     protected function execAlias($alias)
     {
         $this->slice['alias'] = $alias;
+        return $this->reok();
+    }
+    public function dump($gon = false)
+    {
+        $this->set('execDump', $gon);
+        return $this;
+    }
+    protected function execDump($gon)
+    {
+        $this->slice['dump'] = $gon;
         return $this->reok();
     }
     public function cache($time, $tag = '')
