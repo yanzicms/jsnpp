@@ -17,6 +17,9 @@ function lang($str){
 function url($name, $arr = []){
     return Tools::url($name, $arr);
 }
+function act($name, $arr = [], $param = ''){
+    return Tools::act($name, $arr, $param);
+}
 function subtext($text, $length)
 {
     if(mb_strlen($text, 'utf8') > $length)

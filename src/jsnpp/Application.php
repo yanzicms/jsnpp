@@ -14,7 +14,7 @@ use jsnpp\exception\FuncNotFoundException;
 
 class Application
 {
-    const VERSION = '4.3.0';
+    const VERSION = '4.4.0';
     private $startTime;
     private $startMem;
     private $rootDir;

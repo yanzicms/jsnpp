@@ -12,6 +12,7 @@ class Tools
 {
     public static $url;
     public static $lang;
+    public static $act;
     public static $app;
     public static function dirName($path, $levels = 1)
     {
@@ -214,6 +215,10 @@ class Tools
     public static function url($name, $arr = [])
     {
         return self::$url->url($name, $arr);
+    }
+    public static function act($name, $arr = [], $param = '')
+    {
+        return self::$act->act($name, $arr, $param);
     }
     public static function isTwoDimensionalArray($arr)
     {

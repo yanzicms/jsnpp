@@ -256,8 +256,105 @@ class Response
                 $url = $this->ptoa($url);
                 $match[$key] = '<?php echo url(' . $url . '); ?>';
             }
+            elseif(substr($val, 0, 4) == 'act('){
+                $act = trim(substr($val, 4, -1));
+                if(count($stack) > 0){
+                    $act = $this->toeach($stack, $act);
+                }
+                $act = $this->ptoa($act);
+                if(strpos($act, '[') !== false){
+                    if(substr($act, -1) == ']'){
+                        $hasparam = true;
+                        $hasvar = false;
+                    }
+                    else{
+                        $hasparam = true;
+                        $hasvar = true;
+                    }
+                }
+                else{
+                    if(strpos($act, ',') !== false){
+                        $hasparam = false;
+                        $hasvar = true;
+                    }
+                    else{
+                        $hasparam = false;
+                        $hasvar = false;
+                    }
+                }
+                if($hasparam == false && $hasvar == false){
+                    list($class, $func) = $this->getcontrfunc($act);
+                    $actmp = md5($class . '_' . $func . '_' . serialize([]));
+                    $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                }
+                else{
+                    $actmp = preg_replace('/\[.*\]/', '', $act);
+                    $actmparr = explode(',', $actmp);
+                    $actmp = trim(trim(trim(end($actmparr)), '\'"'));
+                    if(!empty($actmp)){
+                        $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                    }
+                    else{
+                        preg_match('/\[.*\]/', $act, $actarr);
+                        $actarr = eval('return ' . $actarr[0] . ';');
+                        list($class, $func) = $this->getcontrfunc($actmparr[0]);
+                        $actmp = md5($class . '_' . $func . '_' . serialize($actarr));
+                        $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                    }
+                }
+                
+                $match[$key] = $phpstr;
+            }
             elseif(substr($val, 0, 5) == 'each '){
-                list($eacharr, $eachi, $eachfrom, $eachto, $eachstep) = $this->breakeach($val);
+                list($eacharr, $eachi, $eachfrom, $eachto, $eachstep, $act) = $this->breakeach($val);
+                $phpstr = '';
+                if(!empty($act)){
+                    if(count($stack) > 0){
+                        $act = $this->toeach($stack, $act);
+                    }
+                    $act = $this->ptoa($act);
+                    if(strpos($act, '[') !== false){
+                        if(substr($act, -1) == ']'){
+                            $hasparam = true;
+                            $hasvar = false;
+                        }
+                        else{
+                            $hasparam = true;
+                            $hasvar = true;
+                        }
+                    }
+                    else{
+                        if(strpos($act, ',') !== false){
+                            $hasparam = false;
+                            $hasvar = true;
+                        }
+                        else{
+                            $hasparam = false;
+                            $hasvar = false;
+                        }
+                    }
+                    if($hasparam == false && $hasvar == false){
+                        list($class, $func) = $this->getcontrfunc($act);
+                        $actmp = md5($class . '_' . $func . '_' . serialize([]));
+                        $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                    }
+                    else{
+                        $actmp = preg_replace('/\[.*\]/', '', $act);
+                        $actmparr = explode(',', $actmp);
+                        $actmp = trim(trim(trim(end($actmparr)), '\'"'));
+                        if(!empty($actmp)){
+                            $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                        }
+                        else{
+                            preg_match('/\[.*\]/', $act, $actarr);
+                            $actarr = eval('return ' . $actarr[0] . ';');
+                            list($class, $func) = $this->getcontrfunc($actmparr[0]);
+                            $actmp = md5($class . '_' . $func . '_' . serialize($actarr));
+                            $phpstr = '<?php $' . $actmp . ' = act(' . $act . '); ?>';
+                        }
+                    }
+                    $eacharr = '$' . $actmp;
+                }
                 if(count($stack) > 0){
                     $eacharr = $this->toeach($stack, $eacharr);
                     $eacharr = $this->ptoa($eacharr);
@@ -268,7 +365,7 @@ class Response
                 }
                 $eachorder ++;
                 $stack[] = [$eacharr, $eachi, $eachorder];
-                $match[$key] = '<?php if(isset('.$eacharr.') && is_array('.$eacharr.') && count('.$eacharr.') > 0){
+                $match[$key] = $phpstr . '<?php if(isset('.$eacharr.') && is_array('.$eacharr.') && count('.$eacharr.') > 0){
 $_jsnpp_keyarr_'.$eachorder.' = array_keys('.$eacharr.');
 }else{
 $_jsnpp_keyarr_'.$eachorder.' = [];
@@ -369,8 +466,33 @@ for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnp
         $tpl = str_replace($jsnppConversions, $jsnpps, $tpl);
         return $tpl;
     }
+    private function getcontrfunc($name)
+    {
+        $name = trim(trim(trim($name), '\'"'));
+        $name = str_replace('\\', '/', $name);
+        if(strpos($name, '/') !== false){
+            $arr = explode('/', $name);
+            $class = $arr[0];
+            $func = $arr[1];
+        }
+        else{
+            $class = $this->app->getConfig('defaultcontroller');
+            if(empty($class)){
+                $class = 'index';
+            }
+            $func = $name;
+        }
+        return [$class, $func];
+    }
     private function breakeach($str)
     {
+        $act = '';
+        if(stripos($str, ' act(') !== false){
+            preg_match('/ act\(.*\)/', $str, $actarr);
+            $act = trim($actarr[0]);
+            $act = trim(substr($act, 4, -1));
+            $str = preg_replace('/ act\(.*\)/', ' $_jsnpp_framework', $str);
+        }
         $str = preg_replace('/( )+/', ' ', $str);
         $arr = explode(' ', $str);
         $arrlen = count($arr);
@@ -397,7 +519,7 @@ for('.$eachi.' = '.$eachfrom.', $order' . $orderstr . ' = 1; '.$eachi.' < $_jsnp
         if(!isset($reArr['step'])){
             $reArr['step'] = 1;
         }
-        return [$reArr['in'], $reArr['each'], $reArr['from'], $reArr['to'], $reArr['step']];
+        return [$reArr['in'], $reArr['each'], $reArr['from'], $reArr['to'], $reArr['step'], $act];
     }
     private function ptoa($val)
     {

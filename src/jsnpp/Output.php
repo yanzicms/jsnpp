@@ -138,6 +138,7 @@ class Output extends Connector
                 $this->response->setAssign('captcha', '<img src="'.$captchaurl.'" onclick="this.src = \''.$captchaurl.'?\' + Math.random();" style="cursor: pointer">');
                 Tools::$lang = $this->app->get('lang');
                 Tools::$url = $this->app->get('route');
+                Tools::$act = $this->app->get('execute');
                 $this->response->display($tplfile);
             }
             else{
