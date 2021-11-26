@@ -8,6 +8,14 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Config config
+ * @property Db db
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Check extends Connector
 {
     private $sessions;
@@ -20,6 +28,9 @@ class Check extends Connector
         $this->cookies = $this->app->get('cookie');
         $this->cache = $this->app->get('cache');
     }
+    /**
+     * @return Check
+     */
     public function stop($variable, $symbol, $expression = null, $alert = null)
     {
         $this->set('execStop', $variable, $symbol, $expression, $alert);
@@ -87,6 +98,9 @@ class Check extends Connector
         }
         return $value;
     }
+    /**
+     * @return Check
+     */
     public function filter($value, $func)
     {
         $detr = debug_backtrace();
@@ -106,6 +120,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function session($name, $value, $condition = true)
     {
         $this->set('execSession', $name, $value, $condition);
@@ -125,6 +142,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function removeSession($name, $condition = true)
     {
         $this->set('execRemoveSession', $name, $condition);
@@ -141,6 +161,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function cookie($name, $value, $expire, $condition = true)
     {
         $this->set('execCookie', $name, $value, $expire, $condition);
@@ -160,6 +183,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function removeCookie($name, $condition = true)
     {
         $this->set('execRemoveCookie', $name, $condition);
@@ -176,6 +202,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function run($func, $variable = null, $symbol = null, $expression = null)
     {
         $detr = debug_backtrace();
@@ -214,6 +243,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function box($name)
     {
         $this->set('execBox', $name);
@@ -231,6 +263,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function deleteCache($name)
     {
         $this->set('execDeleteCache', $name);
@@ -245,6 +280,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function deleteCacheTag($name)
     {
         $this->set('execDeleteCacheTag', $name);
@@ -259,6 +297,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function clearCache()
     {
         $this->set('execClearCache');
@@ -273,6 +314,9 @@ class Check extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Check
+     */
     public function param(...$param)
     {
         foreach($param as $key => $val){

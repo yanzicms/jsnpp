@@ -8,8 +8,19 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Check check
+ * @property Db db
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Config extends Connector
 {
+    /**
+     * @return Config
+     */
     public function setConfig($name, $value = '')
     {
         $this->set('execSetConfig', $name, $value);
@@ -24,6 +35,9 @@ class Config extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Config
+     */
     public function writeConfig($name, $value = '')
     {
         $this->set('execWriteConfig', $name, $value);
@@ -38,6 +52,9 @@ class Config extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Config
+     */
     public function writeCustomize($customize, $name, $value = '')
     {
         $this->set('execWriteCustomize', $customize, $name, $value);
@@ -52,6 +69,9 @@ class Config extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Config
+     */
     public function writeRouting($name, $value = '')
     {
         $this->set('execWriteRouting', $name, $value);

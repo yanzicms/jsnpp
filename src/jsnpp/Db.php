@@ -11,6 +11,14 @@ namespace jsnpp;
 use jsnpp\exception\DbSyntaxException;
 use jsnpp\exception\PDOExecutionException;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Db extends Connector
 {
     protected $database;
@@ -852,6 +860,9 @@ class Db extends Connector
         }
         return [$whereCode, $whereArr];
     }
+    /**
+     * @return Db
+     */
     public function table($name)
     {
         $this->set('execTable', $name);
@@ -863,6 +874,9 @@ class Db extends Connector
         $this->slice['table'] = substr($name, 0, 5) == ':box(' ? $name : $this->dbprefix . $name;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function field($string)
     {
         $this->set('execField', $string);
@@ -873,6 +887,9 @@ class Db extends Connector
         $this->slice['field'] = trim($string);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function order($string)
     {
         $this->set('execOrder', $string);
@@ -883,6 +900,9 @@ class Db extends Connector
         $this->slice['order'] = trim($string);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function limit($offset, $rows = null)
     {
         $this->set('execLimit', $offset, $rows);
@@ -897,6 +917,9 @@ class Db extends Connector
         $this->slice['limit'] = $string;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function group($string)
     {
         $this->set('execGroup', $string);
@@ -907,6 +930,9 @@ class Db extends Connector
         $this->slice['group'] = trim($string);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function having($string)
     {
         $this->set('execHaving', $string);
@@ -917,6 +943,9 @@ class Db extends Connector
         $this->slice['having'] = trim($string);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function distinct()
     {
         $this->set('execDistinct');
@@ -927,6 +956,9 @@ class Db extends Connector
         $this->slice['distinct'] = 'DISTINCT';
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function alias($alias)
     {
         $this->set('execAlias', $alias);
@@ -937,6 +969,9 @@ class Db extends Connector
         $this->slice['alias'] = $alias;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function dump($gon = false)
     {
         $this->set('execDump', $gon);
@@ -947,6 +982,9 @@ class Db extends Connector
         $this->slice['dump'] = $gon;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function cache($time, $tag = '')
     {
         $this->set('execCache', $time, $tag);
@@ -960,6 +998,9 @@ class Db extends Connector
         }
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function removeCache($tag = '')
     {
         $this->set('execRemoveCache', $tag);
@@ -970,6 +1011,9 @@ class Db extends Connector
         $this->slice['removeCache'] = $tag;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function box($name)
     {
         $this->set('execBox', $name);
@@ -980,6 +1024,9 @@ class Db extends Connector
         $this->slice['box'] = $name;
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function paging($per, $param = [], $total = null)
     {
         $this->set('execPaging', $per, $param, $total);
@@ -1013,6 +1060,9 @@ class Db extends Connector
         ];
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function where($statement, $judgment = '', $condition = null)
     {
         $this->set('execWhere', $statement, $judgment, $condition);
@@ -1023,6 +1073,9 @@ class Db extends Connector
         $this->dowhere($statement, $judgment, $condition, 'where');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function orWhere($statement, $judgment = '', $condition = null)
     {
         $this->set('execOrWhere', $statement, $judgment, $condition);
@@ -1033,6 +1086,9 @@ class Db extends Connector
         $this->dowhere($statement, $judgment, $condition, 'orwhere');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function andWhere($statement, $judgment = '', $condition = null)
     {
         $this->set('execAndWhere', $statement, $judgment, $condition);
@@ -1043,6 +1099,9 @@ class Db extends Connector
         $this->dowhere($statement, $judgment, $condition, 'andwhere');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function whereOr($statement, $judgment = '', $condition = null)
     {
         $this->set('execWhereOr', $statement, $judgment, $condition);
@@ -1053,6 +1112,9 @@ class Db extends Connector
         $this->dowhere($statement, $judgment, $condition, 'whereor');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function whereAnd($statement, $judgment = '', $condition = null)
     {
         $this->set('execWhereAnd', $statement, $judgment, $condition);
@@ -1254,6 +1316,9 @@ class Db extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Db
+     */
     public function select()
     {
         $this->set('execSelect');
@@ -1264,6 +1329,9 @@ class Db extends Connector
         $this->doAction('select');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function subquery()
     {
         $this->set('execSubquery');
@@ -1274,6 +1342,9 @@ class Db extends Connector
         $this->doAction('subquery');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function count($field = null)
     {
         $this->set('execCount', $field);
@@ -1287,6 +1358,9 @@ class Db extends Connector
         $this->doAction('count');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function max($field)
     {
         $this->set('execMax', $field);
@@ -1298,6 +1372,9 @@ class Db extends Connector
         $this->doAction('max');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function min($field)
     {
         $this->set('execMin', $field);
@@ -1309,6 +1386,9 @@ class Db extends Connector
         $this->doAction('min');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function avg($field)
     {
         $this->set('execAvg', $field);
@@ -1320,6 +1400,9 @@ class Db extends Connector
         $this->doAction('avg');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function sum($field)
     {
         $this->set('execSum', $field);
@@ -1331,6 +1414,9 @@ class Db extends Connector
         $this->doAction('sum');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function find()
     {
         $this->set('execFind');
@@ -1341,6 +1427,9 @@ class Db extends Connector
         $this->doAction('find');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function delete()
     {
         $this->set('execDelete');
@@ -1351,6 +1440,9 @@ class Db extends Connector
         $this->doAction('delete');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function update($data = null)
     {
         $this->set('execUpdate', $data);
@@ -1370,6 +1462,9 @@ class Db extends Connector
         $this->doAction('update');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function data($data, $val = null)
     {
         $this->set('execData', $data, $val);
@@ -1391,6 +1486,9 @@ class Db extends Connector
         }
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function insert($data = null)
     {
         $this->set('execInsert', $data);
@@ -1420,6 +1518,9 @@ class Db extends Connector
         $this->addSign();
         $this->slice = [];
     }
+    /**
+     * @return Db
+     */
     public function join($condition)
     {
         $this->set('execJoin', $condition);
@@ -1430,6 +1531,9 @@ class Db extends Connector
         $this->doJoin('join', $condition);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function leftJoin($condition)
     {
         $this->set('execLeftJoin', $condition);
@@ -1440,6 +1544,9 @@ class Db extends Connector
         $this->doJoin('leftjoin', $condition);
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function rightJoin($condition)
     {
         $this->set('execRightJoin', $condition);
@@ -1461,6 +1568,9 @@ class Db extends Connector
         }
         $this->slice = [];
     }
+    /**
+     * @return Db
+     */
     public function endJoin()
     {
         $this->set('execEndJoin');
@@ -1482,6 +1592,9 @@ class Db extends Connector
         $this->addSign();
         $this->join = [];
     }
+    /**
+     * @return Db
+     */
     public function union()
     {
         $this->set('execUnion');
@@ -1492,6 +1605,9 @@ class Db extends Connector
         $this->doUnion('union');
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function unionAll()
     {
         $this->set('execUnionAll');
@@ -1512,6 +1628,9 @@ class Db extends Connector
         }
         $this->slice = [];
     }
+    /**
+     * @return Db
+     */
     public function endUnion()
     {
         $this->set('execEndUnion');
@@ -1533,6 +1652,9 @@ class Db extends Connector
         $this->addSign();
         $this->union = [];
     }
+    /**
+     * @return Db
+     */
     public function beginTransaction()
     {
         $this->set('execBeginTransaction');
@@ -1543,6 +1665,9 @@ class Db extends Connector
         $this->beginTransaction[] = 'sign' . $this->getSign();
         return $this->reok();
     }
+    /**
+     * @return Db
+     */
     public function endTransaction()
     {
         $this->set('execEndTransaction');

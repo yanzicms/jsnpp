@@ -8,6 +8,14 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Db db
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ */
 class Upload extends Connector
 {
     private $file;
@@ -19,6 +27,9 @@ class Upload extends Connector
         $this->lang = $this->app->get('lang');
         $this->image = $this->app->get('image');
     }
+    /**
+     * @return Upload
+     */
     public function save($path = '', $raw = false)
     {
         $this->set('execSave', $path, $raw);
@@ -44,6 +55,9 @@ class Upload extends Connector
             'list' => $list
         ];
     }
+    /**
+     * @return Upload
+     */
     public function box($name)
     {
         $this->set('execBox', $name);
@@ -58,6 +72,9 @@ class Upload extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Upload
+     */
     public function check($name, $expression, $alert = null)
     {
         $this->set('execCheck', $name, $expression, $alert);
@@ -110,6 +127,9 @@ class Upload extends Connector
             'list' => $list
         ];
     }
+    /**
+     * @return Upload
+     */
     public function setName($name)
     {
         $this->set('execSetName', $name);
@@ -124,6 +144,9 @@ class Upload extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Upload
+     */
     public function resize($width, $height)
     {
         $this->set('execResize', $width, $height);
@@ -146,6 +169,9 @@ class Upload extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Upload
+     */
     public function cut($width, $height, $nimg = '', $position = 'center', $quality = 80)
     {
         $this->set('execCut', $width, $height, $nimg, $position, $quality);
@@ -171,6 +197,9 @@ class Upload extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Upload
+     */
     public function watermark($stamp, $size = '30', $position = 'center', $to = '', $quality = 80)
     {
         $this->set('execWatermark', $stamp, $size, $position, $to, $quality);

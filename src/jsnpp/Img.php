@@ -8,12 +8,23 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Db db
+ * @property Event event
+ * @property Output output
+ * @property Upload upload
+ */
 class Img extends Connector
 {
     private $image;
     public function initialize(){
         $this->image = $this->app->get('image');
     }
+    /**
+     * @return Img
+     */
     public function resize($width, $height, $oimg, $nimg = '', $quality = 80)
     {
         $this->set('execResize', $width, $height, $oimg, $nimg, $quality);
@@ -40,6 +51,9 @@ class Img extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Img
+     */
     public function cut($width, $height, $oimg, $nimg = '', $position = 'center', $quality = 80)
     {
         $this->set('execCut', $width, $height, $oimg, $nimg, $position, $quality);
@@ -66,6 +80,9 @@ class Img extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Img
+     */
     public function watermark($img, $stamp, $size = '30', $position = 'center', $to = '', $quality = 80)
     {
         $this->set('execWatermark', $img, $stamp, $size, $position, $to, $quality);

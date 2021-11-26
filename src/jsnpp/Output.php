@@ -16,6 +16,9 @@ class Output extends Connector
     public function initialize(){
         $this->route = $this->app->get('route');
     }
+    /**
+     * @return Output
+     */
     public function noAssign($name, $value = '')
     {
         $this->set('execNoAssign', $name, $value);
@@ -35,6 +38,9 @@ class Output extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Output
+     */
     public function appendAssign($name, $value = '')
     {
         $this->set('execAppendAssign', $name, $value);
@@ -52,6 +58,9 @@ class Output extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Output
+     */
     public function assign($name, $value = null)
     {
         if(!is_array($name) && is_null($value)){
@@ -81,6 +90,9 @@ class Output extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Output
+     */
     public function display($tplfile = '', $append = [])
     {
         if(empty($tplfile)){
@@ -146,6 +158,9 @@ class Output extends Connector
             }
         }
     }
+    /**
+     * @return Output
+     */
     public function redirect($name, $array = [])
     {
         $this->set('execRedirect', $name, $array);
@@ -156,6 +171,9 @@ class Output extends Connector
         $this->route->redirect($name, $array);
         exit();
     }
+    /**
+     * @return Output
+     */
     public function dump($value)
     {
         $this->set('execDump', $value);
@@ -187,6 +205,9 @@ class Output extends Connector
         }
         return $value;
     }
+    /**
+     * @return Output
+     */
     public function setCode($code)
     {
         $this->response->setCode($code);

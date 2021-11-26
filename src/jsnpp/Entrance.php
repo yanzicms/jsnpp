@@ -10,6 +10,15 @@ namespace jsnpp;
 
 use jsnpp\exception\ArgumentException;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Db db
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Entrance extends Connector
 {
     private $session;
@@ -18,6 +27,9 @@ class Entrance extends Connector
         $this->session = $this->app->get('session');
         $this->lang = $this->app->get('lang');
     }
+    /**
+     * @return Entrance
+     */
     public function check($item, $check = null, $alert = null, $ischeck = true)
     {
         $this->set('execCheck', $item, $check, $alert, $ischeck);
@@ -104,6 +116,9 @@ class Entrance extends Connector
             'list' => $list
         ];
     }
+    /**
+     * @return Entrance
+     */
     public function inbox($name, $value)
     {
         $this->set('execInBox', $name, $value);

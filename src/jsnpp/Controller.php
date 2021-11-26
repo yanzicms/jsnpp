@@ -8,6 +8,10 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Application app
+ */
+
 class Controller
 {
     protected $app;

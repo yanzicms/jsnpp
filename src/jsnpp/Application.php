@@ -12,9 +12,19 @@ use jsnpp\exception\ArgumentException;
 use jsnpp\exception\ClassNotFoundException;
 use jsnpp\exception\FuncNotFoundException;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Db db
+ * @property Entrance entrance
+ * @property Event event
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Application
 {
-    const VERSION = '4.4.0';
+    const VERSION = '4.5.0';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -92,7 +102,21 @@ class Application
     }
     private function isClassParam($param)
     {
-        return $param->getType() && !$param->getType()->isBuiltin();
+		if(method_exists($param, 'getType')){
+            return $param->getType() && !$param->getType()->isBuiltin();
+        }
+        else{
+            return !is_null($param->getClass());
+        }
+    }
+	private function getClassName($param)
+    {
+        if(method_exists($param, 'getType')){
+            return $param->getType()->getName();
+        }
+        else{
+            return $param->getClass()->getName();
+        }
     }
     private function getParams($constructor, $args = [])
     {
@@ -117,7 +141,7 @@ class Application
             foreach($params as $param){
                 $name = $param->getName();
                 if($this->isClassParam($param)){
-                    $arguments[] = $this->getClassParam($param->getType()->getName(), $args, $noclass);
+                    $arguments[] = $this->getClassParam($this->getClassName($param), $args, $noclass);
                 }
                 elseif($isIndex){
                     $arguments[] = array_shift($args);

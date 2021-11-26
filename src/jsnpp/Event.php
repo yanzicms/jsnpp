@@ -8,12 +8,23 @@
  */
 namespace jsnpp;
 
+/**
+ * @property Check check
+ * @property Config config
+ * @property Db db
+ * @property Img img
+ * @property Output output
+ * @property Upload upload
+ */
 class Event extends Connector
 {
     private $handle;
     public function initialize(){
         $this->handle = $this->app->get('handle');
     }
+    /**
+     * @return Event
+     */
     public function register($event)
     {
         $this->set('execRegister', $event);
@@ -28,6 +39,9 @@ class Event extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Event
+     */
     public function listen($method, $param = [])
     {
         $this->set('execListen', $method, $param);
@@ -48,6 +62,9 @@ class Event extends Connector
             'message' => 'ok'
         ];
     }
+    /**
+     * @return Event
+     */
     public function run($event, $method, $param = [])
     {
         $this->set('execRun', $event, $method, $param);
