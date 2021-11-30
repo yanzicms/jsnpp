@@ -170,7 +170,7 @@ class Entrance extends Connector
                     }
                     break;
                 case 'number':
-                    if(!ctype_digit(strval($item))){
+                    if(!is_numeric($item)){
                         $re = $alert;
                     }
                     break;
