@@ -554,6 +554,9 @@ class Db extends Connector
                                 $total = $recount[0]['total'];
                             }
                             $page = $this->currentpage();
+                            if($dbexec['paging']['per'] <= 0){
+                                throw new DbSyntaxException('The number of records per page cannot be zero');
+                            }
                             $pages = ceil($total / $dbexec['paging']['per']);
                             $paramArr = $dbexec['paging']['param'];
                             if(isset($paramArr['page'])){

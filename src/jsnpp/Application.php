@@ -24,7 +24,7 @@ use jsnpp\exception\FuncNotFoundException;
  */
 class Application
 {
-    const VERSION = '4.5.0';
+    const VERSION = '4.6.0';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -102,7 +102,7 @@ class Application
     }
     private function isClassParam($param)
     {
-		if(method_exists($param, 'getType')){
+        if(method_exists($param, 'getType')){
             return $param->getType() && !$param->getType()->isBuiltin();
         }
         else{

@@ -10,14 +10,65 @@ namespace jsnpp;
 
 class Image
 {
-    public function resize($width, $height, $from, $to = '', $quality = 80)
+    public function convert($from, $type = 'png', $to = '', $quality = 80)
     {
+        if(empty($type)){
+            $type = 'png';
+        }
         $ext = pathinfo($from, PATHINFO_EXTENSION);
+        $ext = strtolower($ext);
         if($ext == 'png'){
             $im = imagecreatefrompng($from);
         }
         elseif($ext == 'gif'){
             $im = imagecreatefromgif($from);
+        }
+        elseif($ext == 'webp'){
+            $im = imagecreatefromwebp($from);
+        }
+        else{
+            $im = imagecreatefromjpeg($from);
+        }
+        imagepalettetotruecolor($im);
+        imagealphablending($im, false);
+        imagesavealpha($im, true);
+        if(empty($to)){
+            $to = $from;
+        }
+        $toname = pathinfo($to, PATHINFO_DIRNAME) . DIRECTORY_SEPARATOR . pathinfo($to, PATHINFO_FILENAME);
+        $type = strtolower($type);
+        if($type == 'png'){
+            $to = $toname . '.png';
+            imagepng($im, $to, floor($quality * 9 / 100));
+        }
+        elseif($type == 'gif'){
+            $to = $toname . '.gif';
+            imagegif($im, $to);
+        }
+        elseif($type == 'webp'){
+            $to = $toname . '.webp';
+            imagewebp($im, $to, $quality);
+        }
+        else{
+            if($type == 'jpg' || $type == 'jpeg'){
+                $to = $toname . '.jpg';
+            }
+            imagejpeg($im, $to, $quality);
+        }
+        imagedestroy($im);
+    }
+    public function resize($width, $height, $from, $to = '', $quality = 80)
+    {
+        $ext = pathinfo($from, PATHINFO_EXTENSION);
+        $ext = strtolower($ext);
+        if($ext == 'png'){
+            $im = imagecreatefrompng($from);
+        }
+        elseif($ext == 'gif'){
+            $im = imagecreatefromgif($from);
+        }
+        elseif($ext == 'webp'){
+            $im = imagecreatefromwebp($from);
         }
         else{
             $im = imagecreatefromjpeg($from);
@@ -36,11 +87,15 @@ class Image
                 $to = $from;
             }
             $ext = pathinfo($to, PATHINFO_EXTENSION);
+            $ext = strtolower($ext);
             if($ext == 'png'){
                 imagepng($im2, $to, floor($quality * 9 / 100));
             }
             elseif($ext == 'gif'){
                 imagegif($im2, $to);
+            }
+            elseif($ext == 'webp'){
+                imagewebp($im2, $to, $quality);
             }
             else{
                 imagejpeg($im2, $to, $quality);
@@ -52,11 +107,15 @@ class Image
     public function cut($width, $height, $from, $to = '', $position = 'center', $quality = 80)
     {
         $ext = pathinfo($from, PATHINFO_EXTENSION);
+        $ext = strtolower($ext);
         if($ext == 'png'){
             $im = imagecreatefrompng($from);
         }
         elseif($ext == 'gif'){
             $im = imagecreatefromgif($from);
+        }
+        elseif($ext == 'webp'){
+            $im = imagecreatefromwebp($from);
         }
         else{
             $im = imagecreatefromjpeg($from);
@@ -166,11 +225,15 @@ class Image
                 $to = $from;
             }
             $ext = pathinfo($to, PATHINFO_EXTENSION);
+            $ext = strtolower($ext);
             if($ext == 'png'){
                 imagepng($im2, $to, floor($quality * 9 / 100));
             }
             elseif($ext == 'gif'){
                 imagegif($im2, $to);
+            }
+            elseif($ext == 'webp'){
+                imagewebp($im2, $to, $quality);
             }
             else{
                 imagejpeg($im2, $to, $quality);
@@ -181,12 +244,19 @@ class Image
     }
     public function watermark($img, $stamp, $size = '30', $position = 'center', $to = '', $quality = 80)
     {
+        if(empty($position)){
+            $position = 'center';
+        }
         $ext = pathinfo($img, PATHINFO_EXTENSION);
+        $ext = strtolower($ext);
         if($ext == 'png'){
             $im = imagecreatefrompng($img);
         }
         elseif($ext == 'gif'){
             $im = imagecreatefromgif($img);
+        }
+        elseif($ext == 'webp'){
+            $im = imagecreatefromwebp($img);
         }
         else{
             $im = imagecreatefromjpeg($img);
@@ -196,11 +266,15 @@ class Image
         $position = strtolower($position);
         if(preg_match('/(\w+\/)+\w+\.\w{3,4}$/', str_replace('\\', '/', $stamp)) && is_file($stamp)){
             $sext = pathinfo($stamp, PATHINFO_EXTENSION);
+            $sext = strtolower($sext);
             if($sext == 'png'){
                 $im2 = imagecreatefrompng($stamp);
             }
             elseif($sext == 'gif'){
                 $im2 = imagecreatefromgif($stamp);
+            }
+            elseif($sext == 'webp'){
+                $im2 = imagecreatefromwebp($stamp);
             }
             else{
                 $im2 = imagecreatefromjpeg($stamp);
@@ -256,6 +330,9 @@ class Image
             }
             elseif($ext == 'gif'){
                 imagegif($im, $to);
+            }
+            elseif($ext == 'webp'){
+                imagewebp($im, $to, $quality);
             }
             else{
                 imagejpeg($im, $to, $quality);
@@ -327,6 +404,9 @@ class Image
             }
             elseif($ext == 'gif'){
                 imagegif($im, $to);
+            }
+            elseif($ext == 'webp'){
+                imagewebp($im, $to, $quality);
             }
             else{
                 imagejpeg($im, $to, $quality);

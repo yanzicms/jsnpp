@@ -38,10 +38,10 @@ class Captcha
             $captchcode .= $fontcontent;
             $angleabs = $angle = rand(0, 30);
             if(rand(1, 100) % 2 == 0){
-                $x = ($i * $width / $quantity) + rand(0, $wto) + $wto * 2 / 3;
+                $x = intval(($i * $width / $quantity) + rand(0, $wto) + $wto * 2 / 3);
             }
             else{
-                $x = ($i * $width / $quantity) + rand(0, $wto) - $wto * 2 / 3;
+                $x = intval(($i * $width / $quantity) + rand(0, $wto) - $wto * 2 / 3);
                 $angle = - $angle;
             }
             if($x < 0){

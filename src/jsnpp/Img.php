@@ -25,6 +25,35 @@ class Img extends Connector
     /**
      * @return Img
      */
+    public function convert($from, $type = 'png', $to = '', $quality = 80)
+    {
+        $this->set('execConvert', $from, $type, $to, $quality);
+        return $this;
+    }
+    protected function execConvert($from, $type, $to, $quality)
+    {
+        if(preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $from, $metchs)){
+            $from = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($type) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $type, $metchs)){
+            $type = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($to) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $to, $metchs)){
+            $to = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($quality) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $quality, $metchs)){
+            $quality = $this->findBoxValue($metchs[1]);
+        }
+        $this->image->convert($from, $type, $to, $quality);
+        return [
+            'result' => true,
+            'code' => 0,
+            'message' => 'ok'
+        ];
+    }
+    /**
+     * @return Img
+     */
     public function resize($width, $height, $oimg, $nimg = '', $quality = 80)
     {
         $this->set('execResize', $width, $height, $oimg, $nimg, $quality);
@@ -43,6 +72,9 @@ class Img extends Connector
         }
         if(!empty($nimg) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $nimg, $metchs)){
             $nimg = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($quality) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $quality, $metchs)){
+            $quality = $this->findBoxValue($metchs[1]);
         }
         $this->image->resize($width, $height, $oimg, $nimg, $quality);
         return [
@@ -73,6 +105,12 @@ class Img extends Connector
         if(!empty($nimg) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $nimg, $metchs)){
             $nimg = $this->findBoxValue($metchs[1]);
         }
+        if(!empty($position) && is_string($position) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $position, $metchs)){
+            $position = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($quality) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $quality, $metchs)){
+            $quality = $this->findBoxValue($metchs[1]);
+        }
         $this->image->cut($width, $height, $oimg, $nimg, $position, $quality);
         return [
             'result' => true,
@@ -99,11 +137,14 @@ class Img extends Connector
         if(!empty($size) && is_string($size) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $size, $metchs)){
             $size = $this->findBoxValue($metchs[1]);
         }
-        if(is_string($position) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $position, $metchs)){
+        if(!empty($position) && is_string($position) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $position, $metchs)){
             $position = $this->findBoxValue($metchs[1]);
         }
         if(!empty($to) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $to, $metchs)){
             $to = $this->findBoxValue($metchs[1]);
+        }
+        if(!empty($quality) && preg_match('/^:box *\( *([A-Za-z][A-Za-z0-9_\.]*) *\)$/i', $quality, $metchs)){
+            $quality = $this->findBoxValue($metchs[1]);
         }
         $this->image->watermark($img, $stamp, $size, $position, $to, $quality);
         return [
