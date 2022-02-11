@@ -37,7 +37,6 @@ class View
             $tplfile = $this->app->appDir() . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR . $class .DIRECTORY_SEPARATOR . $method . '.' . $this->app->getConfig('templatesuffix');
         }
         Tools::$lang = $this->app->get('lang');
-        Tools::$url = $this->app->get('route');
         Tools::$act = $this->app->get('execute');
         if(is_file($tplfile)){
             $captchaurl = $this->route->url('captcha');

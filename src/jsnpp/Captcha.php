@@ -19,14 +19,14 @@ class Captcha
     }
     public function generate()
     {
-        $width = intval(trim($this->app->getConfig('imagewidth')));
-        $height = intval(trim($this->app->getConfig('imageheight')));
+        $width = @intval(trim($this->app->getConfig('imagewidth')));
+        $height = @intval(trim($this->app->getConfig('imageheight')));
         $image = imagecreatetruecolor($width, $height);
         $bgcolor=imagecolorallocate($image,rand(230,255),rand(230,255),rand(230,255));
         imagefill($image,0,0,$bgcolor);
         $captchcode = '';
-        $fontsize = intval(trim($this->app->getConfig('fontsize')));
-        $quantity = intval(trim($this->app->getConfig('quantity')));
+        $fontsize = @intval(trim($this->app->getConfig('fontsize')));
+        $quantity = @intval(trim($this->app->getConfig('quantity')));
         $data='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $datalen = strlen($data) - 1;
         $wto = ceil($width / $quantity - $fontsize);
@@ -38,10 +38,10 @@ class Captcha
             $captchcode .= $fontcontent;
             $angleabs = $angle = rand(0, 30);
             if(rand(1, 100) % 2 == 0){
-                $x = intval(($i * $width / $quantity) + rand(0, $wto) + $wto * 2 / 3);
+                $x = @intval(($i * $width / $quantity) + rand(0, $wto) + $wto * 2 / 3);
             }
             else{
-                $x = intval(($i * $width / $quantity) + rand(0, $wto) - $wto * 2 / 3);
+                $x = @intval(($i * $width / $quantity) + rand(0, $wto) - $wto * 2 / 3);
                 $angle = - $angle;
             }
             if($x < 0){
@@ -54,12 +54,12 @@ class Captcha
             imagettftext($image, $fontsize, $angle, $x, $y, $fontcolor, Tools::dirName(__DIR__, 1) . 'font' . DIRECTORY_SEPARATOR . 't1.ttf', $fontcontent);
         }
         $this->session->set('_jsnpp_captcha', $captchcode);
-        $interferencepoints = intval(trim($this->app->getConfig('interferencepoints')));
+        $interferencepoints = @intval(trim($this->app->getConfig('interferencepoints')));
         for($i = 0; $i < $interferencepoints; $i++){
             $pointcolor=imagecolorallocate($image,rand(50,120),rand(50,120),rand(50,120));
             imagesetpixel($image,rand(1, $width),rand(1, $height),$pointcolor);
         }
-        $interferencelines = intval(trim($this->app->getConfig('interferencelines')));
+        $interferencelines = @intval(trim($this->app->getConfig('interferencelines')));
         for($i = 0; $i < $interferencelines; $i++){
             $linecolor=imagecolorallocate($image,rand(80,220),rand(80,220),rand(80,220));
             $startx = rand(1, $width);

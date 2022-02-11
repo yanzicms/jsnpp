@@ -26,3 +26,55 @@ function subtext($text, $length)
         return mb_substr($text, 0, $length, 'utf8').'...';
     return $text;
 }
+function isPost()
+{
+    return Tools::isPost();
+}
+function isGet()
+{
+    return Tools::isGet();
+}
+function isPut()
+{
+    return Tools::isPut();
+}
+function isDelete()
+{
+    return Tools::isDelete();
+}
+function isHttps()
+{
+    return Tools::isHttps();
+}
+function isAjax()
+{
+    return Tools::isAjax();
+}
+function isPjax()
+{
+    return Tools::isPjax();
+}
+function ip()
+{
+    return Tools::ip();
+}
+function isMobile()
+{
+    return Tools::isMobile();
+}
+function host()
+{
+    return Tools::host();
+}
+function webRoot()
+{
+    return Tools::webRoot();
+}
+function domain()
+{
+    return Tools::domain();
+}
+function redirect($name, $arr = [])
+{
+    return Tools::redirect($name, $arr);
+}

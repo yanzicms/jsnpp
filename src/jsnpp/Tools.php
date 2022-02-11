@@ -14,6 +14,7 @@ class Tools
     public static $lang;
     public static $act;
     public static $app;
+    public static $request;
     public static function dirName($path, $levels = 1)
     {
         while($levels > 0){
@@ -212,9 +213,9 @@ class Tools
     {
         return self::$lang->translate($str);
     }
-    public static function url($name, $arr = [])
+    public static function url($name, $arr = [], $full = false)
     {
-        return self::$url->url($name, $arr);
+        return self::$url->url($name, $arr, $full);
     }
     public static function act($name, $arr = [], $param = '')
     {
@@ -226,5 +227,57 @@ class Tools
             return true;
         }
         return false;
+    }
+    public static function isPost()
+    {
+        return self::$request->isPost();
+    }
+    public static function isGet()
+    {
+        return self::$request->isGet();
+    }
+    public static function isPut()
+    {
+        return self::$request->isPut();
+    }
+    public static function isDelete()
+    {
+        return self::$request->isDelete();
+    }
+    public static function isHttps()
+    {
+        return self::$request->isHttps();
+    }
+    public static function isAjax()
+    {
+        return self::$request->isAjax();
+    }
+    public static function isPjax()
+    {
+        return self::$request->isPjax();
+    }
+    public static function ip()
+    {
+        return self::$request->ip();
+    }
+    public static function isMobile()
+    {
+        return self::$request->isMobile();
+    }
+    public static function host()
+    {
+        return self::$request->host();
+    }
+    public static function webRoot()
+    {
+        return self::$url->rootUrl();
+    }
+    public static function domain()
+    {
+        return self::$url->domain();
+    }
+    public static function redirect($name, $arr = [])
+    {
+        return self::$url->redirect($name, $arr);
     }
 }
