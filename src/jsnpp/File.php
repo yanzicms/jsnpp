@@ -21,7 +21,7 @@ class File
     }
     public function name($name)
     {
-        $this->name = $name;
+        $this->name = trim($name);
         return $this;
     }
     public function extension($extensions, $alert = '')

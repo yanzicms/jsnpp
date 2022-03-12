@@ -24,7 +24,7 @@ use jsnpp\exception\FuncNotFoundException;
  */
 class Application
 {
-    const VERSION = '4.6.0';
+    const VERSION = '4.7.13';
     private $startTime;
     private $startMem;
     private $rootDir;
@@ -109,7 +109,7 @@ class Application
             return !is_null($param->getClass());
         }
     }
-	private function getClassName($param)
+    private function getClassName($param)
     {
         if(method_exists($param, 'getType')){
             return $param->getType()->getName();
@@ -134,7 +134,7 @@ class Application
             }
         }
         $coutargs = count($args);
-        if($coutargs > 0 && $coutargs < $parcount){
+        if($coutargs < $parcount){
             throw new ArgumentException('Parameter mismatch:' . implode(', ', $args));
         }
         else{

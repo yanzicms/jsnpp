@@ -14,7 +14,9 @@ class Request
     private $realIP;
     protected $proxyServerIp = [];
     protected $proxyServerIpHeader = ['HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP'];
-    public function __construct(){}
+    public function __construct(){
+        $this->judgment();
+    }
     public function requestUri()
     {
         if(isset($_SERVER['REQUEST_URI'])){
@@ -112,6 +114,9 @@ class Request
     public function isHttps()
     {
         if(isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 1 || strtolower($_SERVER['HTTPS']) == 'on')){
+            return true;
+        }
+        elseif(isset($_SERVER['HTTP_X_CLIENT_SCHEME']) && strtolower($_SERVER['HTTP_X_CLIENT_SCHEME']) == 'https'){
             return true;
         }
         elseif(isset($_SERVER['REQUEST_SCHEME']) && strtolower($_SERVER['REQUEST_SCHEME']) == 'https'){

@@ -10,9 +10,9 @@ namespace jsnpp;
 
 class Cookie
 {
-    public function set($name, $value, $expire)
+    public function set($name, $value, $expire, $path = '/', $domain = '', $secure = false, $httponly = false)
     {
-        setcookie($name, $value, time() + $expire, '/');
+        setcookie($name, $value, time() + $expire, $path, $domain, $secure, $httponly);
         return $this;
     }
     public function get($name = null)

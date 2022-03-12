@@ -189,6 +189,7 @@ class Db extends Connector
                 ];
             }
             elseif($item['action'] == 'subquery'){
+                $alias = isset($item['slice']['alias']) ? $item['slice']['alias'] : '';
                 $whereParam = isset($item['slice']['whereParam']) ? $item['slice']['whereParam'] : [];
                 if(isset($item['slice']['where'])){
                     list($where, $whereArr) = $this->getWhere($item['slice']['where'], $whereParam);
@@ -206,7 +207,8 @@ class Db extends Connector
                     'transaction' => $transaction,
                     'statement' => $statement,
                     'bind' => $whereArr,
-                    'box' => $box
+                    'box' => $box,
+                    'alias' => $alias
                 ];
             }
             elseif($item['action'] == 'find'){
@@ -456,10 +458,10 @@ class Db extends Connector
                     $whereArrAll = array_merge($whereArrAll, $whereArr);
                     $unionStatement .= $this->getSelect($unionItem['slice'], $where);
                     if($unionItem['action'] == 'union'){
-                        $unionStatement .= ' UNION ';
+                        $unionStatement .= ') UNION (';
                     }
                     elseif($unionItem['action'] == 'unionall'){
-                        $unionStatement .= ' UNION ALL ';
+                        $unionStatement .= ') UNION ALL (';
                     }
                     if(isset($unionItem['slice']['cache']) && $unionItem['slice']['cache'] > $unioncache){
                         $unioncache = $unionItem['slice']['cache'];
@@ -477,7 +479,7 @@ class Db extends Connector
                     'sign' => $item['sign'],
                     'action' => $item['action'],
                     'transaction' => $transaction,
-                    'statement' => $unionStatement,
+                    'statement' => '(' . $unionStatement . ')',
                     'bind' => $whereArrAll,
                     'cache' => $unioncache,
                     'cachetag' => $unioncacheTag,
@@ -500,7 +502,8 @@ class Db extends Connector
                     $this->boxs[$dbexec['box']] = [
                         'statement' => $dbexec['statement'],
                         'bind' => $dbexec['bind'],
-                        '_subquery' => 'subquery'
+                        '_subquery' => 'subquery',
+                        'alias' => $dbexec['alias']
                     ];
                     continue;
                 }
@@ -551,7 +554,12 @@ class Db extends Connector
                                 else{
                                     $recount = $this->database->sql($countstatement, $countstatementbind);
                                 }
-                                $total = $recount[0]['total'];
+                                if(isset($recount[0]['total'])){
+                                    $total = $recount[0]['total'];
+                                }
+                                else{
+                                    $total = 0;
+                                }
                             }
                             $page = $this->currentpage();
                             if($dbexec['paging']['per'] <= 0){
@@ -597,7 +605,7 @@ class Db extends Connector
                     if(isset($dbexec['cache']) && !empty($dbexec['cachetag'])){
                         $this->cache->tag($dbexec['cachetag'])->set($symbol, $result, intval($dbexec['cache']));
                     }
-                    elseif(isset($dbexec['cache'])){
+                    elseif(isset($dbexec['cache']) && !$hascache){
                         $this->cache->set($symbol, $result, intval($dbexec['cache']));
                     }
                     if(!empty($dbexec['removecache'])){
@@ -648,6 +656,9 @@ class Db extends Connector
     {
         $commandArr = explode('.', $value);
         $value = array_shift($commandArr);
+        if(!isset($this->boxs[$value])){
+            return null;
+        }
         $value = $this->boxs[$value];
         if(count($commandArr) > 0){
             foreach($commandArr as $cval){
@@ -703,7 +714,17 @@ class Db extends Connector
                 $bingArr = array_merge($bingArr, array_slice($bind, $start));
             }
         }
-        $statement = str_replace($metches[0], '(' . $this->boxs[$metches[1]]['statement'] . ')', $statement);
+        if(preg_match('/ FROM ( *)' . str_replace(['(', ')'], ['\(', '\)'], $metches[0]) . '( *) WHERE /i', $statement)){
+            if(!empty($this->boxs[$metches[1]]['alias'])){
+                $statement = str_replace($metches[0], '(' . $this->boxs[$metches[1]]['statement'] . ') AS ' . $this->boxs[$metches[1]]['alias'], $statement);
+            }
+            else{
+                $statement = str_replace($metches[0], '(' . $this->boxs[$metches[1]]['statement'] . ') AS jsnpp_alias' . $this->getSign(), $statement);
+            }
+        }
+        else{
+            $statement = str_replace($metches[0], '(' . $this->boxs[$metches[1]]['statement'] . ')', $statement);
+        }
         return [$statement, $bingArr];
     }
     private function getBox($slice)
@@ -969,7 +990,7 @@ class Db extends Connector
     }
     protected function execAlias($alias)
     {
-        $this->slice['alias'] = $alias;
+        $this->slice['alias'] = trim($alias);
         return $this->reok();
     }
     /**
@@ -1132,7 +1153,7 @@ class Db extends Connector
     {
         $ispre = Tools::hasString($statement, ['?']);
         $single = Tools::hasString($statement, ['=', '!=', '>', '<', '>=', '<=', ' BETWEEN ', ' LIKE ', ' IN ']);
-        if($ispre && (empty($judgment) || $condition != '')){
+        if($ispre && (($judgment != 0 && empty($judgment)) || $condition != '')){
             throw new DbSyntaxException('Database syntax error: Prepared statement needs and only needs another parameter');
         }
         elseif(!$ispre && $single && ($judgment != '' || $condition != '')){
@@ -1243,17 +1264,23 @@ class Db extends Connector
                         $qstr = '';
                         $incondit = [];
                         $recond = $this->findValue($isbox[2]);
-                        if(is_array($recond)){
-                            foreach($recond as $key => $val){
-                                $qstr .= empty($qstr) ? '?' : ',?';
-                                $incondit[] = $val;
-                            }
+                        if(is_null($recond)){
+                            $qstr = $condition;
+                            $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' ' . $qstr];
                         }
                         else{
-                            $qstr = '?';
-                            $incondit[] = $recond;
+                            if(is_array($recond)){
+                                foreach($recond as $key => $val){
+                                    $qstr .= empty($qstr) ? '?' : ',?';
+                                    $incondit[] = $val;
+                                }
+                            }
+                            else{
+                                $qstr = '?';
+                                $incondit[] = $recond;
+                            }
+                            $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' (' . $qstr . ')'];
                         }
-                        $this->slice['where'][] = [$name, $statement . ' ' . $judgment . ' (' . $qstr . ')'];
                         if(count($incondit) > 0){
                             $this->slice['whereParam'][] = $incondit;
                         }
@@ -1737,9 +1764,9 @@ class Db extends Connector
     private function inexpression($key, $val)
     {
         if(preg_match('/\W' . $key . '\W/', ' ' . $val . ' ')){
-            $val = preg_replace('/^\w+\((.*)\)$/', '$1', trim($val));
+            $val = preg_replace('/^\w+\s*\((.*)\)$/', '$1', trim($val));
             $val = preg_replace(['/' . $key . '/', '/\s+/'], '', trim($val));
-            $val = str_replace(['+', '-', '*', '/', '%'], '', $val);
+            $val = str_replace(['+', '-', '*', '/', '%', '.', '(', ')'], '', $val);
             if(preg_match('/^\d+$/', $val)){
                 return true;
             }

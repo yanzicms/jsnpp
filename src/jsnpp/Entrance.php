@@ -270,6 +270,9 @@ class Entrance extends Connector
                     break;
             }
         }
+        if($re !== false && empty($re)){
+            $re = $this->lang->translate('Check failed') . ': ' . $item;
+        }
         return $re;
     }
 }

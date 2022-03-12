@@ -29,7 +29,7 @@ class Captcha
         $quantity = @intval(trim($this->app->getConfig('quantity')));
         $data='abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         $datalen = strlen($data) - 1;
-        $wto = ceil($width / $quantity - $fontsize);
+        $wto = ceil(($width / $quantity - $fontsize) / 2);
         $hfo = ceil(($height - $fontsize) / 4 + $fontsize);
         $hto = ceil(($height - $fontsize) * 3 / 4 + $fontsize);
         for($i = 0; $i < $quantity; $i++){

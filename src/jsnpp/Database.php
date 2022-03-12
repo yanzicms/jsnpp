@@ -92,13 +92,14 @@ class Database
     public function sql($sql, $data = [])
     {
         $sql = trim($sql);
+        $sqlnb = ltrim($sql, '(');
         $this->connectDb();
         $sth = $this->dbh->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $result = $sth->execute($data);
-        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select' || strtolower(substr($sql, 0, 6)) == 'pragma'){
+        if(strtolower(substr($sqlnb, 0, 4)) == 'show' || strtolower(substr($sqlnb, 0, 6)) == 'select' || strtolower(substr($sqlnb, 0, 6)) == 'pragma'){
             $result = $sth->fetchAll(PDO::FETCH_ASSOC);
         }
-        elseif(strtolower(substr($sql, 0, 6)) == 'insert'){
+        elseif(strtolower(substr($sqlnb, 0, 6)) == 'insert'){
             $result = $this->dbh->lastInsertId();
         }
         else{
@@ -109,10 +110,11 @@ class Database
     public function sqlRaw($sql, $data = [])
     {
         $sql = trim($sql);
+        $sqlnb = ltrim($sql, '(');
         $this->connectDb(true);
         $sth = $this->dbh->prepare($sql, [PDO::ATTR_CURSOR => PDO::CURSOR_FWDONLY]);
         $result = $sth->execute($data);
-        if(strtolower(substr($sql, 0, 4)) == 'show' || strtolower(substr($sql, 0, 6)) == 'select' || strtolower(substr($sql, 0, 6)) == 'pragma'){
+        if(strtolower(substr($sqlnb, 0, 4)) == 'show' || strtolower(substr($sqlnb, 0, 6)) == 'select' || strtolower(substr($sqlnb, 0, 6)) == 'pragma'){
             $result = $sth->fetchAll(PDO::FETCH_ASSOC);
         }
         return $result;

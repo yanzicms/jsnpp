@@ -19,4 +19,5 @@ return [
     'The uploaded file size exceeds the allowed value' => '上传的文件大小超过允许值',
     'Can only check: extension, type, size' => '只能检查：extension，type，size',
     'Verification code error' => '验证码错误',
+    'Check failed' => '检查没通过',
 ];
